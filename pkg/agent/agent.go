@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/coreos/go-systemd/login1"
+	"github.com/pantheon-systems/go-systemd/login1"
 	"github.com/golang/glog"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -16,10 +16,10 @@ import (
 	"k8s.io/client-go/kubernetes"
 	v1core "k8s.io/client-go/kubernetes/typed/core/v1"
 
-	"github.com/coreos/container-linux-update-operator/pkg/constants"
-	"github.com/coreos/container-linux-update-operator/pkg/drain"
-	"github.com/coreos/container-linux-update-operator/pkg/k8sutil"
-	"github.com/coreos/container-linux-update-operator/pkg/updateengine"
+	"github.com/pantheon-systems/container-linux-update-operator/pkg/constants"
+	"github.com/pantheon-systems/container-linux-update-operator/pkg/drain"
+	"github.com/pantheon-systems/container-linux-update-operator/pkg/k8sutil"
+	"github.com/pantheon-systems/container-linux-update-operator/pkg/updateengine"
 )
 
 type Klocksmith struct {

@@ -11,9 +11,9 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
 
-	"github.com/coreos/container-linux-update-operator/pkg/constants"
-	"github.com/coreos/container-linux-update-operator/pkg/k8sutil"
-	"github.com/coreos/container-linux-update-operator/pkg/version"
+	"github.com/pantheon-systems/container-linux-update-operator/pkg/constants"
+	"github.com/pantheon-systems/container-linux-update-operator/pkg/k8sutil"
+	"github.com/pantheon-systems/container-linux-update-operator/pkg/version"
 )
 
 var (

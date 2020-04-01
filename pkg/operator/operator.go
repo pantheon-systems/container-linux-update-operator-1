@@ -19,9 +19,9 @@ import (
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
 	"k8s.io/client-go/tools/record"
 
-	"github.com/coreos/container-linux-update-operator/pkg/constants"
-	"github.com/coreos/container-linux-update-operator/pkg/k8sutil"
-	"github.com/coreos/locksmith/pkg/timeutil"
+	"github.com/pantheon-systems/container-linux-update-operator/pkg/constants"
+	"github.com/pantheon-systems/container-linux-update-operator/pkg/k8sutil"
+	"github.com/pantheon-systems/locksmith/pkg/timeutil"
 )
 
 const (
