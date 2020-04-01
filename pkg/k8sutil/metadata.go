@@ -11,7 +11,8 @@ import (
 	v1api "k8s.io/api/core/v1"
 	v1meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
-	"k8s.io/apimachinery/pkg/watch"
+	kwatch "k8s.io/apimachinery/pkg/watch"
+	"k8s.io/client-go/tools/watch"
 	v1core "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
@@ -24,9 +25,9 @@ const (
 // NodeAnnotationCondition returns a condition function that succeeds when a
 // node being watched has an annotation of key equal to value.
 func NodeAnnotationCondition(selector fields.Selector) watch.ConditionFunc {
-	return func(event watch.Event) (bool, error) {
+	return func(event kwatch.Event) (bool, error) {
 		switch event.Type {
-		case watch.Modified:
+		case kwatch.Modified:
 			node := event.Object.(*v1api.Node)
 			return selector.Matches(fields.Set(node.Annotations)), nil
 		}

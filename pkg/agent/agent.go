@@ -5,9 +5,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pantheon-systems/go-systemd/login1"
+	"github.com/coreos/go-systemd/login1"
 	"github.com/golang/glog"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"

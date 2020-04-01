@@ -21,7 +21,8 @@ import (
 
 	"github.com/pantheon-systems/container-linux-update-operator/pkg/constants"
 	"github.com/pantheon-systems/container-linux-update-operator/pkg/k8sutil"
-	"github.com/pantheon-systems/locksmith/pkg/timeutil"
+
+	"github.com/coreos/locksmith/pkg/timeutil"
 )
 
 const (
@@ -177,9 +178,9 @@ func New(config Config) (*Kontroller, error) {
 	}
 
 	return &Kontroller{
-		kc: kc,
-		nc: nc,
-		er: er,
+		kc:                          kc,
+		nc:                          nc,
+		er:                          er,
 		beforeRebootAnnotations:     config.BeforeRebootAnnotations,
 		afterRebootAnnotations:      config.AfterRebootAnnotations,
 		leaderElectionClient:        leaderElectionClient,
