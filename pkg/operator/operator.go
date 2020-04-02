@@ -1,6 +1,7 @@
 package operator
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"time"
@@ -94,7 +95,7 @@ type Kontroller struct {
 	beforeRebootAnnotations []string
 	afterRebootAnnotations  []string
 
-	leaderElectionClient        *kubernetes.Clientset
+	leaderElectionClient        v1core.ConfigMapsGetter
 	leaderElectionEventRecorder record.EventRecorder
 	// namespace is the kubernetes namespace any resources (e.g. locks,
 	// configmaps, agents) should be created and read under.
@@ -142,12 +143,20 @@ func New(config Config) (*Kontroller, error) {
 
 	// create event emitter
 	broadcaster := record.NewBroadcaster()
-	broadcaster.StartRecordingToSink(&v1core.EventSinkImpl{Interface: kc.CoreV1().Events("")})
-	er := broadcaster.NewRecorder(runtime.NewScheme(), v1api.EventSource{Component: eventSourceComponent})
+	broadcaster.StartRecordingToSink(&v1core.EventSinkImpl{
+		Interface: kc.CoreV1().Events(""),
+	})
+	er := broadcaster.NewRecorder(
+		runtime.NewScheme(),
+		v1api.EventSource{Component: eventSourceComponent},
+	)
 
 	leaderElectionClientConfig, err := rest.InClusterConfig()
 	if err != nil {
-		return nil, fmt.Errorf("error creating leader election client config: %v", err)
+		return nil, fmt.Errorf(
+			"error creating leader election client config: %v",
+			err,
+		)
 	}
 	leaderElectionClient, err := kubernetes.NewForConfig(leaderElectionClientConfig)
 	if err != nil {
@@ -155,21 +164,31 @@ func New(config Config) (*Kontroller, error) {
 	}
 
 	leaderElectionBroadcaster := record.NewBroadcaster()
-	leaderElectionBroadcaster.StartRecordingToSink(&v1core.EventSinkImpl{
-		Interface: v1core.New(leaderElectionClient.Core().RESTClient()).Events(""),
-	})
-	leaderElectionEventRecorder := leaderElectionBroadcaster.NewRecorder(runtime.NewScheme(), v1api.EventSource{
-		Component: leaderElectionEventSourceComponent,
-	})
+	leaderElectionBroadcaster.StartRecordingToSink(
+		&v1core.EventSinkImpl{
+			Interface: v1core.New(
+				leaderElectionClient.CoreV1().RESTClient(),
+			).Events(""),
+		})
+	leaderElectionEventRecorder := leaderElectionBroadcaster.NewRecorder(
+		runtime.NewScheme(),
+		v1api.EventSource{
+			Component: leaderElectionEventSourceComponent,
+		})
 
 	namespace := os.Getenv("POD_NAMESPACE")
 	if namespace == "" {
-		return nil, fmt.Errorf("unable to determine operator namespace: please ensure POD_NAMESPACE environment variable is set")
+		msg := "unable to determine operator namespace:" +
+			" please ensure POD_NAMESPACE environment variable is set"
+		return nil, fmt.Errorf(msg)
 	}
 
 	var rebootWindow *timeutil.Periodic
 	if config.RebootWindowStart != "" && config.RebootWindowLength != "" {
-		rw, err := timeutil.ParsePeriodic(config.RebootWindowStart, config.RebootWindowLength)
+		rw, err := timeutil.ParsePeriodic(
+			config.RebootWindowStart,
+			config.RebootWindowLength,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("Error parsing reboot window: %s", err)
 		}
@@ -183,7 +202,7 @@ func New(config Config) (*Kontroller, error) {
 		er:                          er,
 		beforeRebootAnnotations:     config.BeforeRebootAnnotations,
 		afterRebootAnnotations:      config.AfterRebootAnnotations,
-		leaderElectionClient:        leaderElectionClient,
+		leaderElectionClient:        leaderElectionClient.CoreV1(),
 		leaderElectionEventRecorder: leaderElectionEventRecorder,
 		namespace:                   namespace,
 		autoLabelContainerLinux:     config.AutoLabelContainerLinux,
@@ -257,13 +276,13 @@ func (k *Kontroller) withLeaderElection() error {
 		// and the KVO values
 		// See also
 		// https://github.com/kubernetes/kubernetes/blob/fc31dae165f406026142f0dd9a98cada8474682a/pkg/client/leaderelection/leaderelection.go#L17
-		leaderelection.RunOrDie(leaderelection.LeaderElectionConfig{
+		leaderelection.RunOrDie(context.Background(), leaderelection.LeaderElectionConfig{
 			Lock:          resLock,
 			LeaseDuration: leaderElectionLease,
 			RenewDeadline: leaderElectionLease * 2 / 3,
 			RetryPeriod:   leaderElectionLease / 3,
 			Callbacks: leaderelection.LeaderCallbacks{
-				OnStartedLeading: func(stop <-chan struct{}) {
+				OnStartedLeading: func(ctx context.Context) {
 					glog.V(5).Info("started leading")
 					waitLeading <- struct{}{}
 				},
