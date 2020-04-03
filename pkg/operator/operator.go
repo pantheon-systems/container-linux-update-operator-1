@@ -63,10 +63,12 @@ var (
 	// it would like to reboot, and false when it starts up.
 	//
 	// If constants.AnnotationRebootPaused is set to "true", the update-agent will not consider it for rebooting.
-	wantsRebootSelector = fields.ParseSelectorOrDie(constants.AnnotationRebootNeeded + "==" + constants.True +
-		"," + constants.AnnotationRebootPaused + "!=" + constants.True +
-		"," + constants.AnnotationOkToReboot + "!=" + constants.True +
-		"," + constants.AnnotationRebootInProgress + "!=" + constants.True)
+	wantsRebootSelector = fields.ParseSelectorOrDie(
+		constants.AnnotationRebootNeeded + "==" + constants.True +
+			"," + constants.AnnotationRebootPaused + "!=" + constants.True +
+			"," + constants.AnnotationOkToReboot + "!=" + constants.True +
+			"," + constants.AnnotationRebootInProgress + "!=" + constants.True,
+	)
 
 	// stillRebootingSelector is a selector for the annotation set expected to be
 	// on a node when it's in the process of rebooting
@@ -76,14 +78,29 @@ var (
 	}).AsSelector()
 
 	// beforeRebootReq requires a node to be waiting for before reboot checks to complete
-	beforeRebootReq = k8sutil.NewRequirementOrDie(constants.LabelBeforeReboot, selection.In, []string{constants.True})
+	beforeRebootReq = k8sutil.NewRequirementOrDie(
+		constants.LabelBeforeReboot,
+		selection.In, []string{constants.True},
+	)
 
 	// afterRebootReq requires a node to be waiting for after reboot checks to complete
-	afterRebootReq = k8sutil.NewRequirementOrDie(constants.LabelAfterReboot, selection.In, []string{constants.True})
+	afterRebootReq = k8sutil.NewRequirementOrDie(
+		constants.LabelAfterReboot,
+		selection.In,
+		[]string{constants.True},
+	)
 
 	// notBeforeRebootReq and notAfterRebootReq are the inverse of the above checks
-	notBeforeRebootReq = k8sutil.NewRequirementOrDie(constants.LabelBeforeReboot, selection.NotIn, []string{constants.True})
-	notAfterRebootReq  = k8sutil.NewRequirementOrDie(constants.LabelAfterReboot, selection.NotIn, []string{constants.True})
+	notBeforeRebootReq = k8sutil.NewRequirementOrDie(
+		constants.LabelBeforeReboot,
+		selection.NotIn,
+		[]string{constants.True},
+	)
+	notAfterRebootReq = k8sutil.NewRequirementOrDie(
+		constants.LabelAfterReboot,
+		selection.NotIn,
+		[]string{constants.True},
+	)
 )
 
 type Kontroller struct {
@@ -366,14 +383,18 @@ func (k *Kontroller) cleanupState() error {
 		err = k8sutil.UpdateNodeRetry(k.nc, n.Name, func(node *v1api.Node) {
 			// make sure that nodes with the before-reboot label actually
 			// still wants to reboot
-			if _, exists := node.Labels[constants.LabelBeforeReboot]; exists {
-				if !wantsRebootSelector.Matches(fields.Set(node.Annotations)) {
-					glog.Warningf("Node %v no longer wanted to reboot while we were trying to label it so: %v", node.Name, node.Annotations)
-					delete(node.Labels, constants.LabelBeforeReboot)
-					for _, annotation := range k.beforeRebootAnnotations {
-						delete(node.Annotations, annotation)
-					}
-				}
+			_, exists := node.Labels[constants.LabelBeforeReboot]
+			if !exists || wantsRebootSelector.Matches(fields.Set(node.Annotations)) {
+				return
+			}
+			glog.Warningf(
+				"Node %v no longer wanted to reboot while we were trying to label it so: %v",
+				node.Name,
+				node.Annotations,
+			)
+			delete(node.Labels, constants.LabelBeforeReboot)
+			for _, annotation := range k.beforeRebootAnnotations {
+				delete(node.Annotations, annotation)
 			}
 		})
 		if err != nil {
@@ -401,21 +422,34 @@ func (k *Kontroller) checkBeforeReboot() error {
 	preRebootNodes := k8sutil.FilterNodesByRequirement(nodelist.Items, beforeRebootReq)
 
 	for _, n := range preRebootNodes {
-		if hasAllAnnotations(n, k.beforeRebootAnnotations) {
-			glog.V(4).Infof("Deleting label %q for %q", constants.LabelBeforeReboot, n.Name)
-			glog.V(4).Infof("Setting annotation %q to true for %q", constants.AnnotationOkToReboot, n.Name)
-			err = k8sutil.UpdateNodeRetry(k.nc, n.Name, func(node *v1api.Node) {
-				delete(node.Labels, constants.LabelBeforeReboot)
-				// cleanup the before-reboot annotations
-				for _, annotation := range k.beforeRebootAnnotations {
-					glog.V(4).Info("Deleting annotation %q from node %q", annotation, node.Name)
-					delete(node.Annotations, annotation)
-				}
-				node.Annotations[constants.AnnotationOkToReboot] = constants.True
-			})
-			if err != nil {
-				return fmt.Errorf("Failed to update node %q: %v", n.Name, err)
+		if !hasAllAnnotations(n, k.beforeRebootAnnotations) {
+			continue
+		}
+		glog.V(4).Infof(
+			"Deleting label %q for %q",
+			constants.LabelBeforeReboot,
+			n.Name,
+		)
+		glog.V(4).Infof(
+			"Setting annotation %q to true for %q",
+			constants.AnnotationOkToReboot,
+			n.Name,
+		)
+		err = k8sutil.UpdateNodeRetry(k.nc, n.Name, func(node *v1api.Node) {
+			delete(node.Labels, constants.LabelBeforeReboot)
+			// cleanup the before-reboot annotations
+			for _, annotation := range k.beforeRebootAnnotations {
+				glog.V(4).Infof(
+					"Deleting annotation %q from node %q",
+					annotation,
+					node.Name,
+				)
+				delete(node.Annotations, annotation)
 			}
+			node.Annotations[constants.AnnotationOkToReboot] = constants.True
+		})
+		if err != nil {
+			return fmt.Errorf("Failed to update node %q: %v", n.Name, err)
 		}
 	}
 
@@ -437,21 +471,34 @@ func (k *Kontroller) checkAfterReboot() error {
 	postRebootNodes := k8sutil.FilterNodesByRequirement(nodelist.Items, afterRebootReq)
 
 	for _, n := range postRebootNodes {
-		if hasAllAnnotations(n, k.afterRebootAnnotations) {
-			glog.V(4).Infof("Deleting label %q for %q", constants.LabelAfterReboot, n.Name)
-			glog.V(4).Infof("Setting annotation %q to false for %q", constants.AnnotationOkToReboot, n.Name)
-			err = k8sutil.UpdateNodeRetry(k.nc, n.Name, func(node *v1api.Node) {
-				delete(node.Labels, constants.LabelAfterReboot)
-				// cleanup the after-reboot annotations
-				for _, annotation := range k.afterRebootAnnotations {
-					glog.V(4).Info("Deleting annotation %q from node %q", annotation, node.Name)
-					delete(node.Annotations, annotation)
-				}
-				node.Annotations[constants.AnnotationOkToReboot] = constants.False
-			})
-			if err != nil {
-				return fmt.Errorf("Failed to update node %q: %v", n.Name, err)
+		if !hasAllAnnotations(n, k.afterRebootAnnotations) {
+			continue
+		}
+		glog.V(4).Infof(
+			"Deleting label %q for %q",
+			constants.LabelAfterReboot,
+			n.Name,
+		)
+		glog.V(4).Infof(
+			"Setting annotation %q to false for %q",
+			constants.AnnotationOkToReboot,
+			n.Name,
+		)
+		err = k8sutil.UpdateNodeRetry(k.nc, n.Name, func(node *v1api.Node) {
+			delete(node.Labels, constants.LabelAfterReboot)
+			// cleanup the after-reboot annotations
+			for _, annotation := range k.afterRebootAnnotations {
+				glog.V(4).Infof(
+					"Deleting annotation %q from node %q",
+					annotation,
+					node.Name,
+				)
+				delete(node.Annotations, annotation)
 			}
+			node.Annotations[constants.AnnotationOkToReboot] = constants.False
+		})
+		if err != nil {
+			return fmt.Errorf("Failed to update node %q: %v", n.Name, err)
 		}
 	}
 
@@ -563,7 +610,11 @@ func (k *Kontroller) markAfterReboot() error {
 			return fmt.Errorf("Failed to label node for after reboot checks: %v", err)
 		}
 		if len(k.afterRebootAnnotations) > 0 {
-			glog.Infof("Waiting for after-reboot annotations on node %q: %v", n.Name, k.afterRebootAnnotations)
+			glog.Infof(
+				"Waiting for after-reboot annotations on node %q: %v",
+				n.Name,
+				k.afterRebootAnnotations,
+			)
 		}
 	}
 

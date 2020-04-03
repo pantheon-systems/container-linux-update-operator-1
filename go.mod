@@ -1,6 +1,6 @@
 module github.com/pantheon-systems/container-linux-update-operator
 
-go 1.13
+go 1.14
 
 require (
 	github.com/blang/semver v3.5.0+incompatible
