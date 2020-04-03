@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"time"
@@ -12,9 +13,12 @@ import (
 	v1meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/apimachinery/pkg/watch"
+
+	kwatch "k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
 	v1core "k8s.io/client-go/kubernetes/typed/core/v1"
+	"k8s.io/client-go/tools/cache"
+	"k8s.io/client-go/tools/watch"
 
 	"github.com/pantheon-systems/container-linux-update-operator/pkg/constants"
 	"github.com/pantheon-systems/container-linux-update-operator/pkg/drain"
@@ -307,19 +311,18 @@ func (k *Klocksmith) waitForOkToReboot() error {
 	if n.Annotations[constants.AnnotationOkToReboot] == constants.True && n.Annotations[constants.AnnotationRebootNeeded] == constants.True {
 		return nil
 	}
+	lw := cache.NewListWatchFromClient(
+		k.kc.CoreV1().RESTClient(),
+		"nodes",
+		n.Namespace,
+		fields.OneTermEqualSelector("metadata.name", n.Name),
+	)
 
-	// XXX: set timeout > 0?
-	watcher, err := k.nc.Watch(v1meta.ListOptions{
-		FieldSelector:   fields.OneTermEqualSelector("metadata.name", n.Name).String(),
-		ResourceVersion: n.ResourceVersion,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to watch self node (%q): %v", k.node, err)
-	}
-
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Hour*24))
+	defer cancel()
 	// hopefully 24 hours is enough time between indicating we need a
 	// reboot and the controller telling us to do it
-	ev, err := watch.Until(time.Hour*24, watcher, k8sutil.NodeAnnotationCondition(shouldRebootSelector))
+	ev, err := watch.ListWatchUntil(ctx, lw, k8sutil.NodeAnnotationCondition(shouldRebootSelector))
 	if err != nil {
 		return fmt.Errorf("waiting for annotation %q failed: %v", constants.AnnotationOkToReboot, err)
 	}
@@ -347,14 +350,15 @@ func (k *Klocksmith) waitForNotOkToReboot() error {
 		return nil
 	}
 
-	// XXX: set timeout > 0?
-	watcher, err := k.nc.Watch(v1meta.ListOptions{
-		FieldSelector:   fields.OneTermEqualSelector("metadata.name", n.Name).String(),
-		ResourceVersion: n.ResourceVersion,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to watch self node (%q): %v", k.node, err)
-	}
+	lw := cache.NewListWatchFromClient(
+		k.kc.CoreV1().RESTClient(),
+		"nodes",
+		n.Namespace,
+		fields.OneTermEqualSelector("metadata.name", n.Name),
+	)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Hour*24))
+	defer cancel()
 
 	// Within 24 hours of indicating we don't need a reboot we should be given a not-ok.
 	// If that isn't the case, it likely means the operator isn't running, and
@@ -363,11 +367,11 @@ func (k *Klocksmith) waitForNotOkToReboot() error {
 	// true' vs '== False'; due to the operator matching on '== True', and not
 	// going out of its way to convert '' => 'False', checking the exact inverse
 	// of what the operator checks is the correct thing to do.
-	ev, err := watch.Until(time.Hour*24, watcher, watch.ConditionFunc(func(event watch.Event) (bool, error) {
+	ev, err := watch.ListWatchUntil(ctx, lw, watch.ConditionFunc(func(event kwatch.Event) (bool, error) {
 		switch event.Type {
-		case watch.Error:
+		case kwatch.Error:
 			return false, fmt.Errorf("error watching node: %v", event.Object)
-		case watch.Deleted:
+		case kwatch.Deleted:
 			return false, fmt.Errorf("our node was deleted while we were waiting for ready")
 		}
 
