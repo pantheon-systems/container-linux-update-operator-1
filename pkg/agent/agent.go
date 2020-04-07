@@ -308,7 +308,8 @@ func (k *Klocksmith) waitForOkToReboot() error {
 		return fmt.Errorf("failed to get self node (%q): %v", k.node, err)
 	}
 
-	if n.Annotations[constants.AnnotationOkToReboot] == constants.True && n.Annotations[constants.AnnotationRebootNeeded] == constants.True {
+	if n.Annotations[constants.AnnotationOkToReboot] == constants.True &&
+		n.Annotations[constants.AnnotationRebootNeeded] == constants.True {
 		return nil
 	}
 	lw := cache.NewListWatchFromClient(
@@ -367,12 +368,13 @@ func (k *Klocksmith) waitForNotOkToReboot() error {
 	// true' vs '== False'; due to the operator matching on '== True', and not
 	// going out of its way to convert '' => 'False', checking the exact inverse
 	// of what the operator checks is the correct thing to do.
-	ev, err := watch.ListWatchUntil(ctx, lw, watch.ConditionFunc(func(event kwatch.Event) (bool, error) {
+	condition := func(event kwatch.Event) (bool, error) {
 		switch event.Type {
 		case kwatch.Error:
 			return false, fmt.Errorf("error watching node: %v", event.Object)
 		case kwatch.Deleted:
-			return false, fmt.Errorf("our node was deleted while we were waiting for ready")
+			return false,
+				fmt.Errorf("node deleted while waiting for ready: %q", n.Name)
 		}
 
 		no := event.Object.(*v1.Node)
@@ -380,9 +382,14 @@ func (k *Klocksmith) waitForNotOkToReboot() error {
 			return true, nil
 		}
 		return false, nil
-	}))
+	}
+	ev, err := watch.ListWatchUntil(ctx, lw, watch.ConditionFunc(condition))
 	if err != nil {
-		return fmt.Errorf("waiting for annotation %q failed: %v", constants.AnnotationOkToReboot, err)
+		return fmt.Errorf(
+			"waiting for annotation %q failed: %v",
+			constants.AnnotationOkToReboot,
+			err,
+		)
 	}
 
 	// sanity check
