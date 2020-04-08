@@ -15,7 +15,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 	v1core "k8s.io/client-go/kubernetes/typed/core/v1"
-	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/leaderelection"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
 	"k8s.io/client-go/tools/record"
@@ -168,23 +167,11 @@ func New(config Config) (*Kontroller, error) {
 		v1api.EventSource{Component: eventSourceComponent},
 	)
 
-	leaderElectionClientConfig, err := rest.InClusterConfig()
-	if err != nil {
-		return nil, fmt.Errorf(
-			"error creating leader election client config: %v",
-			err,
-		)
-	}
-	leaderElectionClient, err := kubernetes.NewForConfig(leaderElectionClientConfig)
-	if err != nil {
-		return nil, fmt.Errorf("error creating leader election client: %v", err)
-	}
-
 	leaderElectionBroadcaster := record.NewBroadcaster()
 	leaderElectionBroadcaster.StartRecordingToSink(
 		&v1core.EventSinkImpl{
 			Interface: v1core.New(
-				leaderElectionClient.CoreV1().RESTClient(),
+				kc.CoreV1().RESTClient(),
 			).Events(""),
 		})
 	leaderElectionEventRecorder := leaderElectionBroadcaster.NewRecorder(
@@ -219,7 +206,7 @@ func New(config Config) (*Kontroller, error) {
 		er:                          er,
 		beforeRebootAnnotations:     config.BeforeRebootAnnotations,
 		afterRebootAnnotations:      config.AfterRebootAnnotations,
-		leaderElectionClient:        leaderElectionClient.CoreV1(),
+		leaderElectionClient:        kc.CoreV1(),
 		leaderElectionEventRecorder: leaderElectionEventRecorder,
 		namespace:                   namespace,
 		autoLabelContainerLinux:     config.AutoLabelContainerLinux,

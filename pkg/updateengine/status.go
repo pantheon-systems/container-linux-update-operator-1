@@ -48,6 +48,9 @@ func NewStatus(body []interface{}) (s Status) {
 	s.NewVersion = body[3].(string)
 	s.NewSize = body[4].(int64)
 
+	fmt.Printf("dump s: %+v", s)
+	fmt.Printf("dump body: %+v", body)
+
 	return
 }
 

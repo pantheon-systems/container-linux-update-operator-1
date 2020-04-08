@@ -1,4 +1,5 @@
 bitbucket.org/bertimus9/systemstat v0.0.0-20180207000608-0eeff89b0690/go.mod h1:Ulb78X89vxKYgdL24HMTiXYHlyHEvruOj1ZPlqeNEZM=
+cloud.google.com/go v0.34.0 h1:eOI3/cP2VTU6uZLDYAoic+eyzzB9YyGmJ7eIjl8rOPg=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/Azure/azure-sdk-for-go v21.4.0+incompatible/go.mod h1:9XXNKU+eRnpl9moKnB4QOLf1HestfXbmab5FXxiDBjc=
 github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78/go.mod h1:LmzpDX56iTiv29bbRTIsUNlaFfuhWRQBWjQdVyAevI8=
@@ -330,6 +331,7 @@ k8s.io/gengo v0.0.0-20190116091435-f8a0810f38af/go.mod h1:ezvh/TsK7cY6rbqRK0oQQ8
 k8s.io/heapster v1.2.0-beta.1/go.mod h1:h1uhptVXMwC8xtZBYsPXKVi8fpdlYkTs6k949KozGrM=
 k8s.io/klog v0.3.1 h1:RVgyDHY/kFKtLqh67NvEWIgkMneNoIrdkN0CxDSQc68=
 k8s.io/klog v0.3.1/go.mod h1:Gq+BEi5rUBO/HRz0bTSXDUcqjScdoY3a9IHpCEIOOfk=
+k8s.io/klog v1.0.0 h1:Pt+yjF5aB1xDSVbau4VsWe+dQNzA0qv1LlXdC2dF6Q8=
 k8s.io/kube-aggregator v0.0.0-20190620085325-f29e2b4a4f84/go.mod h1:S8URgD5o6oGCoLP9lx6oAdxWB9Ovtq9KLU9cYmU08QI=
 k8s.io/kube-controller-manager v0.0.0-20190620085942-b7f18460b210/go.mod h1:FoQCodL0eAmdwbZuu2/fi7nVEh3xE4SpomwLaGO4V74=
 k8s.io/kube-openapi v0.0.0-20190228160746-b3a7cee44a30 h1:TRb4wNWoBVrH9plmkp2q86FIDppkbrEXdXlxU3a3BMI=

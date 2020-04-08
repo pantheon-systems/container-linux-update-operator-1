@@ -46,7 +46,7 @@ var (
 
 func New(node string, reapTimeout time.Duration) (*Klocksmith, error) {
 	// set up kubernetes in-cluster client
-	kc, err := k8sutil.GetClient("")
+	kc, err := k8sutil.GetClient()
 	if err != nil {
 		return nil, fmt.Errorf("error creating kubernetes client: %v", err)
 	}
@@ -91,6 +91,7 @@ func (k *Klocksmith) process(stop <-chan struct{}) error {
 	}
 
 	glog.Info("Checking annotations")
+	//TODO: this retry is superfluous
 	node, err := k8sutil.GetNodeRetry(k.nc, k.node)
 	if err != nil {
 		return err
@@ -266,21 +267,22 @@ func (k *Klocksmith) updateStatusCallback(s updateengine.Status) {
 }
 
 // setInfoLabels labels our node with helpful info about Container Linux.
+// TODO: port this from coreos to cos
 func (k *Klocksmith) setInfoLabels() error {
-	vi, err := k8sutil.GetVersionInfo()
-	if err != nil {
-		return fmt.Errorf("failed to get version info: %v", err)
-	}
+	// vi, err := k8sutil.GetVersionInfo()
+	// if err != nil {
+	// 	return fmt.Errorf("failed to get version info: %v", err)
+	// }
 
-	labels := map[string]string{
-		constants.LabelID:      vi.ID,
-		constants.LabelGroup:   vi.Group,
-		constants.LabelVersion: vi.Version,
-	}
+	// labels := map[string]string{
+	// 	constants.LabelID:      vi.ID,
+	// 	constants.LabelGroup:   vi.Group,
+	// 	constants.LabelVersion: vi.Version,
+	// }
 
-	if err := k8sutil.SetNodeLabels(k.nc, k.node, labels); err != nil {
-		return err
-	}
+	// if err := k8sutil.SetNodeLabels(k.nc, k.node, labels); err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
@@ -294,6 +296,7 @@ func (k *Klocksmith) watchUpdateStatus(update func(s updateengine.Status), stop 
 	go k.ue.ReceiveStatuses(ch, stop)
 
 	for status := range ch {
+		glog.Infof("status: %+v", status)
 		if status.CurrentOperation != oldOperation && update != nil {
 			update(status)
 			oldOperation = status.CurrentOperation

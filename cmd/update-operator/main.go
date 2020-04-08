@@ -59,7 +59,7 @@ func main() {
 	}
 
 	// create Kubernetes client (clientset)
-	client, err := k8sutil.GetClient(*kubeconfig)
+	client, err := k8sutil.GetClient()
 	if err != nil {
 		glog.Fatalf("Failed to create Kubernetes client: %v", err)
 	}

@@ -2,6 +2,7 @@ package k8sutil
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -12,8 +13,8 @@ import (
 	v1meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	kwatch "k8s.io/apimachinery/pkg/watch"
-	"k8s.io/client-go/tools/watch"
 	v1core "k8s.io/client-go/kubernetes/typed/core/v1"
+	"k8s.io/client-go/tools/watch"
 )
 
 const (
@@ -30,6 +31,9 @@ func NodeAnnotationCondition(selector fields.Selector) watch.ConditionFunc {
 		case kwatch.Modified:
 			node := event.Object.(*v1api.Node)
 			return selector.Matches(fields.Set(node.Annotations)), nil
+		case kwatch.Added:
+			node := event.Object.(*v1api.Node)
+			return selector.Matches(fields.Set(node.Annotations)), nil
 		}
 
 		return false, fmt.Errorf("unhandled watch case for %#v", event)
@@ -43,6 +47,9 @@ func GetNodeRetry(nc v1core.NodeInterface, node string) (*v1api.Node, error) {
 		n, getErr := nc.Get(node, v1meta.GetOptions{})
 		if getErr != nil {
 			return fmt.Errorf("failed to get node %q: %v", node, getErr)
+		}
+		if n == nil {
+			return errors.New("node is nil but node client returned no error")
 		}
 
 		apiNode = n

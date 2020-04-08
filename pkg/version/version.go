@@ -12,7 +12,7 @@ import (
 
 var (
 	// Version is the semver of this code
-	Version = "UNKNOWN"
+	Version = "0.7.0-dev"
 
 	// Commit is the git commi tthis was built from
 	Commit = "UNKNOWN"
