@@ -33,7 +33,9 @@ func main() {
 	flag.Var(&afterRebootAnnotations, "after-reboot-annotations", "List of comma-separated Kubernetes node annotations that must be set to 'true' before a node is marked schedulable and the operator lock is released")
 	flag.Var(&analyticsEnabled, "analytics", "Send analytics to Google Analytics")
 
-	flag.Set("logtostderr", "true")
+	if err := flag.Set("logtostderr", "true"); err != nil {
+		glog.Fatalf("failed to set 'logtostderr': %v", err)
+	}
 	flag.Parse()
 
 	if err := flagutil.SetFlagsFromEnv(flag.CommandLine, "UPDATE_OPERATOR"); err != nil {

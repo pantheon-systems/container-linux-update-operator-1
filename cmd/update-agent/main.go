@@ -20,7 +20,9 @@ var (
 )
 
 func main() {
-	flag.Set("logtostderr", "true")
+	if err := flag.Set("logtostderr", "true"); err != nil {
+		glog.Fatalf("failed to set 'logtostderr': %v", err)
+	}
 	flag.Parse()
 
 	if err := flagutil.SetFlagsFromEnv(flag.CommandLine, "UPDATE_AGENT"); err != nil {

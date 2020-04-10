@@ -31,11 +31,10 @@ import (
 // method call time=1586301148.041487 sender=:1.2974643 -> destination=org.chromium.UpdateEngine serial=7 path=/org/chromium/UpdateEngine; interface=org.chromium.UpdateEngineInterface; member=GetStatusAdvanced
 
 const (
-	dbusPath            = "/org/chromium/UpdateEngine"
-	dbusInterface       = "org.chromium.UpdateEngineInterface"
-	dbusMember          = "StatusUpdate"
-	dbusMemberInterface = dbusInterface + "." + dbusMember
-	signalBuffer        = 32 // TODO(bp): What is a reasonable value here?
+	dbusPath      = "/org/chromium/UpdateEngine"
+	dbusInterface = "org.chromium.UpdateEngineInterface"
+	dbusMember    = "StatusUpdate"
+	signalBuffer  = 32 // TODO(bp): What is a reasonable value here?
 )
 
 type Client struct {
@@ -104,7 +103,6 @@ func (c *Client) ReceiveStatuses(rcvr chan Status, stop <-chan struct{}) {
 		case <-stop:
 			return
 		case signal := <-c.ch:
-			fmt.Println("got a status signal!!")
 			rcvr <- NewStatus(signal.Body)
 		}
 	}
@@ -116,7 +114,6 @@ func (c *Client) RebootNeededSignal(rcvr chan Status, stop <-chan struct{}) {
 		case <-stop:
 			return
 		case signal := <-c.ch:
-			fmt.Println("got a reboot signal!!")
 			s := NewStatus(signal.Body)
 			if s.CurrentOperation == UpdateStatusUpdatedNeedReboot {
 				rcvr <- s

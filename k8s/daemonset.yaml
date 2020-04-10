@@ -45,9 +45,6 @@ spec:
         - mountPath: /etc/os-release
           name: etc-os-release
       dnsPolicy: ClusterFirst
-      nodeSelector:
-        alpha.pantheon.io/cos: "true"
-        alpha.pantheon.io/cos-namespace: "sandbox-willmilton"
       restartPolicy: Always
       schedulerName: default-scheduler
       securityContext: {}
@@ -93,7 +90,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: reboot-coordinator
-    namespace: sandbox-willmilton
+    namespace: reboot-coordinator
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
@@ -140,11 +137,3 @@ rules:
       - daemonsets
     verbs:
       - get
-
----
-apiVersion: v1
-imagePullSecrets:
-  - name: quay-deployment-pull
-kind: ServiceAccount
-metadata:
-  name: reboot-coordinator

@@ -26,7 +26,8 @@ import (
 )
 
 const (
-	eventReasonRebootFailed            = "RebootFailed"
+	// TODO: this event is unused, does it have a use?
+	// eventReasonRebootFailed            = "RebootFailed"
 	eventSourceComponent               = "update-operator"
 	leaderElectionEventSourceComponent = "update-operator-leader-election"
 	// agentDefaultAppName is the label value for the 'app' key that agents are

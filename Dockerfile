@@ -1,4 +1,12 @@
-FROM alpine:3.7
-RUN apk add --no-cache ca-certificates
-COPY bin /bin/
-ENTRYPOINT ["/bin/update-agent"]
+FROM alpine:3.10 AS certs
+
+RUN apk update && apk add --no-cache ca-certificates && update-ca-certificates
+
+FROM scratch
+
+COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl
+
+ARG cmd
+
+COPY bin/${cmd} /bin/${cmd}
+ENTRYPOINT ["/bin/${cmd}"]

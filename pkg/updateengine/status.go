@@ -21,7 +21,7 @@ import (
 // The possible update statuses returned from the update engine
 //
 // These correspond to current operation values exposed over DBus and defined by `update_engine`:
-// https://github.com/pantheon-systems/update_engine/blob/v0.4.3/src/update_engine/update_attempter.h#L34-L43
+// https://github.com/coreos/update_engine/blob/v0.4.3/src/update_engine/update_attempter.h#L34-L43
 const (
 	UpdateStatusIdle                = "UPDATE_STATUS_IDLE"
 	UpdateStatusCheckingForUpdate   = "UPDATE_STATUS_CHECKING_FOR_UPDATE"
@@ -48,10 +48,7 @@ func NewStatus(body []interface{}) (s Status) {
 	s.NewVersion = body[3].(string)
 	s.NewSize = body[4].(int64)
 
-	fmt.Printf("dump s: %+v", s)
-	fmt.Printf("dump body: %+v", body)
-
-	return
+	return s
 }
 
 func (s *Status) String() string {

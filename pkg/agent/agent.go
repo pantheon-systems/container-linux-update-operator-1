@@ -256,14 +256,18 @@ func (k *Klocksmith) updateStatusCallback(s updateengine.Status) {
 		labels[constants.LabelRebootNeeded] = constants.True
 	}
 
-	wait.PollUntil(defaultPollInterval, func() (bool, error) {
-		if err := k8sutil.SetNodeAnnotationsLabels(k.nc, k.node, anno, labels); err != nil {
-			glog.Errorf("Failed to set annotation %q: %v", constants.AnnotationStatus, err)
+	err := wait.PollUntil(defaultPollInterval, func() (bool, error) {
+		if ierr := k8sutil.SetNodeAnnotationsLabels(k.nc, k.node, anno, labels); ierr != nil {
+			glog.Errorf("Failed to set annotation %q: %v", constants.AnnotationStatus, ierr)
 			return false, nil
 		}
 
 		return true, nil
 	}, wait.NeverStop)
+
+	if err != nil {
+		glog.Errorf("polling until set annotations and labels on update status failed: %v", err)
+	}
 }
 
 // setInfoLabels labels our node with helpful info about Container Linux.
@@ -411,16 +415,12 @@ func (k *Klocksmith) getPodsForDeletion() ([]v1.Pod, error) {
 		return nil, fmt.Errorf("failed to get list of pods for deletion: %v", err)
 	}
 
-	// XXX: ignoring kube-system is a simple way to avoid eviciting
+	// XXX: ignoring kube-system is a simple way to avoid evicting
 	// critical components such as kube-scheduler and
 	// kube-controller-manager.
 
 	pods = k8sutil.FilterPods(pods, func(p *v1.Pod) bool {
-		if p.Namespace == "kube-system" {
-			return false
-		}
-
-		return true
+		return p.Namespace != "kube-system"
 	})
 
 	return pods, nil
