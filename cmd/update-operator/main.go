@@ -9,9 +9,9 @@ import (
 	"github.com/coreos/pkg/flagutil"
 	"github.com/golang/glog"
 
-	"github.com/coreos/container-linux-update-operator/pkg/k8sutil"
-	"github.com/coreos/container-linux-update-operator/pkg/operator"
-	"github.com/coreos/container-linux-update-operator/pkg/version"
+	"github.com/pantheon-systems/container-linux-update-operator/pkg/k8sutil"
+	"github.com/pantheon-systems/container-linux-update-operator/pkg/operator"
+	"github.com/pantheon-systems/container-linux-update-operator/pkg/version"
 )
 
 var (
@@ -33,7 +33,9 @@ func main() {
 	flag.Var(&afterRebootAnnotations, "after-reboot-annotations", "List of comma-separated Kubernetes node annotations that must be set to 'true' before a node is marked schedulable and the operator lock is released")
 	flag.Var(&analyticsEnabled, "analytics", "Send analytics to Google Analytics")
 
-	flag.Set("logtostderr", "true")
+	if err := flag.Set("logtostderr", "true"); err != nil {
+		glog.Fatalf("failed to set 'logtostderr': %v", err)
+	}
 	flag.Parse()
 
 	if err := flagutil.SetFlagsFromEnv(flag.CommandLine, "UPDATE_OPERATOR"); err != nil {
@@ -59,7 +61,7 @@ func main() {
 	}
 
 	// create Kubernetes client (clientset)
-	client, err := k8sutil.GetClient(*kubeconfig)
+	client, err := k8sutil.GetClient()
 	if err != nil {
 		glog.Fatalf("Failed to create Kubernetes client: %v", err)
 	}

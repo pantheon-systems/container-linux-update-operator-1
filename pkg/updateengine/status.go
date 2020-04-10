@@ -48,7 +48,7 @@ func NewStatus(body []interface{}) (s Status) {
 	s.NewVersion = body[3].(string)
 	s.NewSize = body[4].(int64)
 
-	return
+	return s
 }
 
 func (s *Status) String() string {

@@ -22,12 +22,19 @@ import (
 	"github.com/godbus/dbus"
 )
 
+//
+// method call time=1586301148.023978 sender=:1.2974643 -> destination=org.chromium.UpdateEngine serial=3 path=/org/chromium/UpdateEngine; interface=org.chromium.UpdateEngineInterface; member=AttemptUpdateWithFlags
+// string "ForcedUpdate"
+// string "type='signal',interface='org.freedesktop.DBus',member='NameOwnerChanged',path='/org/freedesktop/DBus',sender='org.freedesktop.DBus',arg0='org.chromium.UpdateEngine'"
+// string "org.chromium.UpdateEngine"
+// string "type='signal', sender='org.chromium.UpdateEngine', interface='org.chromium.UpdateEngineInterface', path='/org/chromium/UpdateEngine'"
+// method call time=1586301148.041487 sender=:1.2974643 -> destination=org.chromium.UpdateEngine serial=7 path=/org/chromium/UpdateEngine; interface=org.chromium.UpdateEngineInterface; member=GetStatusAdvanced
+
 const (
-	dbusPath            = "/com/coreos/update1"
-	dbusInterface       = "com.coreos.update1.Manager"
-	dbusMember          = "StatusUpdate"
-	dbusMemberInterface = dbusInterface + "." + dbusMember
-	signalBuffer        = 32 // TODO(bp): What is a reasonable value here?
+	dbusPath      = "/org/chromium/UpdateEngine"
+	dbusInterface = "org.chromium.UpdateEngineInterface"
+	dbusMember    = "StatusUpdate"
+	signalBuffer  = 32 // TODO(bp): What is a reasonable value here?
 )
 
 type Client struct {
@@ -117,7 +124,7 @@ func (c *Client) RebootNeededSignal(rcvr chan Status, stop <-chan struct{}) {
 
 // GetStatus gets the current status from update_engine
 func (c *Client) GetStatus() (Status, error) {
-	call := c.object.Call(dbusInterface+".GetStatus", 0)
+	call := c.object.Call(dbusInterface+".GetStatusAdvanced", 0)
 	if call.Err != nil {
 		return Status{}, call.Err
 	}

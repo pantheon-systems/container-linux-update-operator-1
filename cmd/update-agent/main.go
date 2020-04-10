@@ -9,8 +9,8 @@ import (
 	"github.com/coreos/pkg/flagutil"
 	"github.com/golang/glog"
 
-	"github.com/coreos/container-linux-update-operator/pkg/agent"
-	"github.com/coreos/container-linux-update-operator/pkg/version"
+	"github.com/pantheon-systems/container-linux-update-operator/pkg/agent"
+	"github.com/pantheon-systems/container-linux-update-operator/pkg/version"
 )
 
 var (
@@ -20,7 +20,9 @@ var (
 )
 
 func main() {
-	flag.Set("logtostderr", "true")
+	if err := flag.Set("logtostderr", "true"); err != nil {
+		glog.Fatalf("failed to set 'logtostderr': %v", err)
+	}
 	flag.Parse()
 
 	if err := flagutil.SetFlagsFromEnv(flag.CommandLine, "UPDATE_AGENT"); err != nil {
