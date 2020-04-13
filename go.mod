@@ -1,4 +1,4 @@
-module github.com/pantheon-systems/container-linux-update-operator
+module github.com/pantheon-systems/cos-update-operator
 
 go 1.14
 

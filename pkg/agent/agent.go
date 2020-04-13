@@ -20,10 +20,10 @@ import (
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/watch"
 
-	"github.com/pantheon-systems/container-linux-update-operator/pkg/constants"
-	"github.com/pantheon-systems/container-linux-update-operator/pkg/drain"
-	"github.com/pantheon-systems/container-linux-update-operator/pkg/k8sutil"
-	"github.com/pantheon-systems/container-linux-update-operator/pkg/updateengine"
+	"github.com/pantheon-systems/cos-update-operator/pkg/constants"
+	"github.com/pantheon-systems/cos-update-operator/pkg/drain"
+	"github.com/pantheon-systems/cos-update-operator/pkg/k8sutil"
+	"github.com/pantheon-systems/cos-update-operator/pkg/updateengine"
 )
 
 type Klocksmith struct {

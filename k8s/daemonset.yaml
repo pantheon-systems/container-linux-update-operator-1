@@ -29,7 +29,7 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: metadata.namespace
-        image: ko://github.com/pantheon-systems/container-linux-update-operator/cmd/update-agent
+        image: ko://github.com/pantheon-systems/cos-update-operator/cmd/update-agent
         imagePullPolicy: IfNotPresent
         name: update-agent
         resources: {}

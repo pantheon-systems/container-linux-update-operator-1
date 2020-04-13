@@ -7,18 +7,29 @@ ifneq ($(VERSION), $(RELEASE_VERSION))
     VERSION := $(RELEASE_VERSION)-$(VERSION)
 endif
 
-REPO=github.com/pantheon-systems/container-linux-update-operator
+REPO=github.com/pantheon-systems/cos-update-operator
 # ko can't pass -ldflags any other way
 GOFLAGS := -ldflags=-w
 GOFLAGS := $(GOFLAGS) -ldflags=-X=$(REPO)/pkg/version.Version=$(RELEASE_VERSION)
 GOFLAGS := "$(GOFLAGS) -ldflags=-X=$(REPO)/pkg/version.Commit=$(COMMIT)"
 
-IMAGE_REPO ?= quay.io/getpantheon/container-linux-update-operator
+OPERATOR_IMAGE_REPO ?= quay.io/getpantheon/cos-update-operator-operator
+AGENT_IMAGE_REPO ?= quay.io/getpantheon/cos-update-operator-agent
 
 KUBE_NAMESPACE ?= $(shell kubectl config get-contexts \
     | grep $(kubectl config current-context) | awk '{ print $NF}')
 
+# set GOGC to mitigate OOMing and set lint cache location for use with circleci cache
+ifdef CIRCLECI
+    export GOLANGCI_LINT_CACHE=/tmp/golangci-lint-cache
+    export GOGC=50
+endif
+
 all: bin/* test lint coverage
+
+# used for caching golangci-lint data in circleci
+master-sha:
+	@git fetch origin && git rev-parse origin/master > master_sha
 
 test: deps
 bin/*: deps
@@ -49,22 +60,27 @@ test:
 	go test -v $(REPO)/pkg/...
 
 lint:
-	golangci-lint run
+	golangci-lint run --verbose
 
 coverage:
 	go-acc ./...
 
 agent-image: bin/update-agent
-	@docker build -t $(IMAGE_REPO):$(VERSION) --build-arg=cmd=update-agent .
+	@docker build -t $(AGENT_IMAGE_REPO):$(VERSION) --build-arg=cmd=update-agent .
 
 operator-image: bin/update-operator
-	@docker build -t $(IMAGE_REPO):$(VERSION) --build-arg=cmd=update-operator .
+	@docker build -t $(OPERATOR_IMAGE_REPO):$(VERSION) --build-arg=cmd=update-operator .
 
 image: agent-image
 image: operator-image
 
-push: image
-	@docker push $(IMAGE_REPO):$(VERSION)
+push-agent: agent-image
+	@docker push $(AGENT_IMAGE_REPO):$(VERSION)
+
+push-operator: operator-image
+	@docker push $(OPERATOR_IMAGE_REPO):$(VERSION)
+
+push: push-agent push-operator
 
 ko:
 	@ko apply -f k8s/daemonset.yaml
