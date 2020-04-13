@@ -18,7 +18,17 @@ IMAGE_REPO ?= quay.io/getpantheon/container-linux-update-operator
 KUBE_NAMESPACE ?= $(shell kubectl config get-contexts \
     | grep $(kubectl config current-context) | awk '{ print $NF}')
 
+# set GOGC to mitigate OOMing and set lint cache location for use with circleci cache
+ifdef CIRCLECI
+    export GOLANGCI_LINT_CACHE=/tmp/golangci-lint-cache
+    export GOGC=50
+endif
+
 all: bin/* test lint coverage
+
+# used for caching golangci-lint data in circleci
+master-sha:
+	@git fetch origin && git rev-parse origin/master > master_sha
 
 test: deps
 bin/*: deps
@@ -49,7 +59,7 @@ test:
 	go test -v $(REPO)/pkg/...
 
 lint:
-	golangci-lint run
+	golangci-lint run --verbose
 
 coverage:
 	go-acc ./...
