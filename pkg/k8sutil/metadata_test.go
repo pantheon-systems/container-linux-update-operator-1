@@ -7,7 +7,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	mock_v1 "github.com/pantheon-systems/container-linux-update-operator/pkg/k8sutil/mocks"
+	mock_v1 "github.com/pantheon-systems/cos-update-operator/pkg/k8sutil/mocks"
 	v1api "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1meta "k8s.io/apimachinery/pkg/apis/meta/v1"
