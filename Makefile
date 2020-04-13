@@ -42,7 +42,7 @@ bin/update-operator: test
 # default to linux because this binary is meant to only run on a linux host
 GOOS ?= linux
 bin/update-agent: test
-	GOFLAGS=$(GOFLAGS) GOARCH=amd64 GOOS=$(GOOS) go build -o bin/update-operator \
+	GOFLAGS=$(GOFLAGS) GOARCH=amd64 GOOS=$(GOOS) go build -o bin/update-agent \
         $(REPO)/cmd/update-agent
 
 test:
