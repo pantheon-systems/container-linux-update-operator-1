@@ -1,12 +1,6 @@
-FROM alpine:3.10 AS certs
-
-RUN apk update && apk add --no-cache ca-certificates && update-ca-certificates
-
-FROM scratch
-
-COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl
+FROM gcr.io/distroless/base:latest
 
 ARG cmd
-
 COPY bin/${cmd} /bin/${cmd}
+
 ENTRYPOINT ["/bin/${cmd}"]
