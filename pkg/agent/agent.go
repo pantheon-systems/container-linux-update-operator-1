@@ -2,6 +2,7 @@ package agent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -9,7 +10,7 @@ import (
 	"github.com/coreos/go-systemd/login1"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	v1meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -91,10 +92,12 @@ func (k *Klocksmith) process(stop <-chan struct{}) error {
 	}
 
 	glog.Info("Checking annotations")
-	//TODO: this retry is superfluous
-	node, err := k8sutil.GetNodeRetry(k.nc, k.node)
+	node, err := k.nc.Get(k.node, v1meta.GetOptions{})
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get node %q: %v", node, err)
+	}
+	if node == nil {
+		return errors.New("node is nil but node client returned no error")
 	}
 
 	// Only make a node schedulable if a reboot was in progress. This prevents a node from being made schedulable
@@ -430,7 +433,7 @@ func (k *Klocksmith) getPodsForDeletion() ([]v1.Pod, error) {
 func (k *Klocksmith) waitForPodDeletion(pod v1.Pod) error {
 	return wait.PollImmediate(defaultPollInterval, k.reapTimeout, func() (bool, error) {
 		p, err := k.kc.CoreV1().Pods(pod.Namespace).Get(pod.Name, v1meta.GetOptions{})
-		if errors.IsNotFound(err) || (p != nil && p.ObjectMeta.UID != pod.ObjectMeta.UID) {
+		if k8serrors.IsNotFound(err) || (p != nil && p.ObjectMeta.UID != pod.ObjectMeta.UID) {
 			glog.Infof("Deleted pod %q", pod.Name)
 			return true, nil
 		}

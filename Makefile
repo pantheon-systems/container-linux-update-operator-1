@@ -82,6 +82,7 @@ push-operator: operator-image
 
 push: push-agent push-operator
 
+ko: export KO_DOCKER_REPO=us-central1-docker.pkg.dev/pantheon-sandbox/pantheon-sandbox-public
 ko:
 	@ko apply -f k8s/daemonset.yaml
 
