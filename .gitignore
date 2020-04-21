@@ -4,3 +4,4 @@ container-linux-update-operator
 update-operator
 update-agent
 master_sha
+coverage.txt
