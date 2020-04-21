@@ -9,4 +9,3 @@ COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl
 ARG cmd
 
 COPY bin/${cmd} /bin/${cmd}
-ENTRYPOINT ["/bin/${cmd}"]
