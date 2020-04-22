@@ -34,10 +34,9 @@ master-sha:
 test: deps
 bin/*: deps
 
-tools: export GO111MODULE=off
 tools:
-	go get -u "github.com/golangci/golangci-lint/cmd/golangci-lint" > /dev/null
-	go get -u "github.com/ory/go-acc" > /dev/null
+	go get -u "github.com/golangci/golangci-lint/cmd/golangci-lint" > /dev/null 2>&1
+	go get -u "github.com/ory/go-acc" > /dev/null 2>&1
 
 deps: tools
 	go get ./...
