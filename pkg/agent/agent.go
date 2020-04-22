@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -207,10 +208,14 @@ func (k *Klocksmith) process(stop <-chan struct{}) error {
 	glog.Infof("Deleting %d pods", len(pods))
 	deleteOptions := &v1meta.DeleteOptions{}
 	for _, pod := range pods {
-		glog.Infof("Terminating pod %q...", pod.Name)
-		if err := k.kc.CoreV1().Pods(pod.Namespace).Delete(pod.Name, deleteOptions); err != nil {
-			glog.Errorf("failed terminating pod %q: %v", pod.Name, err)
-			// Continue anyways, the reboot should terminate it
+		if strings.Contains(pod.Name, "update-agent") {
+			glog.Infof("Skipping pod %q...", pod.Name)
+		} else {
+			glog.Infof("Terminating pod %q...", pod.Name)
+			if err := k.kc.CoreV1().Pods(pod.Namespace).Delete(pod.Name, deleteOptions); err != nil {
+				glog.Errorf("failed terminating pod %q: %v", pod.Name, err)
+				// Continue anyways, the reboot should terminate it
+			}
 		}
 	}
 
