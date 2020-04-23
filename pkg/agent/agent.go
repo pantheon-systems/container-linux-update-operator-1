@@ -208,14 +208,10 @@ func (k *Klocksmith) process(stop <-chan struct{}) error {
 	glog.Infof("Deleting %d pods", len(pods))
 	deleteOptions := &v1meta.DeleteOptions{}
 	for _, pod := range pods {
-		if strings.Contains(pod.Name, "update-agent") {
-			glog.Infof("Skipping pod %q...", pod.Name)
-		} else {
-			glog.Infof("Terminating pod %q...", pod.Name)
-			if err := k.kc.CoreV1().Pods(pod.Namespace).Delete(pod.Name, deleteOptions); err != nil {
-				glog.Errorf("failed terminating pod %q: %v", pod.Name, err)
-				// Continue anyways, the reboot should terminate it
-			}
+		glog.Infof("Terminating pod %q...", pod.Name)
+		if err := k.kc.CoreV1().Pods(pod.Namespace).Delete(pod.Name, deleteOptions); err != nil {
+			glog.Errorf("failed terminating pod %q: %v", pod.Name, err)
+			// Continue anyways, the reboot should terminate it
 		}
 	}
 
@@ -423,12 +419,17 @@ func (k *Klocksmith) getPodsForDeletion() ([]v1.Pod, error) {
 		return nil, fmt.Errorf("failed to get list of pods for deletion: %v", err)
 	}
 
+	// WIP: Seeing what's in labels to see if matching is preferable
+	for _, pod := range pods {
+		glog.Infof("DEBUG: pod %v", pod.Labels)
+	}
+
 	// XXX: ignoring kube-system is a simple way to avoid evicting
 	// critical components such as kube-scheduler and
 	// kube-controller-manager.
 
 	pods = k8sutil.FilterPods(pods, func(p *v1.Pod) bool {
-		return p.Namespace != "kube-system"
+		return p.Namespace != "kube-system" && !strings.Contains(p.Name, "update-agent")
 	})
 
 	return pods, nil

@@ -5,6 +5,7 @@ go 1.14
 require (
 	github.com/blang/semver v3.5.0+incompatible
 	github.com/bombsimon/wsl/v2 v2.2.0 // indirect
+	github.com/bombsimon/wsl/v3 v3.1.0 // indirect
 	github.com/coreos/go-systemd v0.0.0-20190719114852-fd7a80b32e1f
 	github.com/coreos/locksmith v0.6.2-0.20171013225126-ef4279232ecd
 	github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f
@@ -16,7 +17,7 @@ require (
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/mock v1.3.1
 	github.com/golangci/gocyclo v0.0.0-20180528144436-0a533e8fa43d // indirect
-	github.com/golangci/golangci-lint v1.24.0 // indirect
+	github.com/golangci/golangci-lint v1.25.0 // indirect
 	github.com/golangci/revgrep v0.0.0-20180812185044-276a5c0a1039 // indirect
 	github.com/google/uuid v1.1.1 // indirect
 	github.com/gostaticanalysis/analysisutil v0.0.3 // indirect
@@ -28,6 +29,7 @@ require (
 	github.com/ory/x v0.0.113 // indirect
 	github.com/pelletier/go-toml v1.7.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/ryancurrah/gomodguard v1.0.3 // indirect
 	github.com/securego/gosec v0.0.0-20200401082031-e946c8c39989 // indirect
 	github.com/sirupsen/logrus v1.5.0 // indirect
 	github.com/spf13/afero v1.2.2 // indirect
@@ -39,6 +41,7 @@ require (
 	golang.org/x/sys v0.0.0-20200420163511-1957bb5e6d1f // indirect
 	golang.org/x/tools v0.0.0-20200422205258-72e4a01eba43 // indirect
 	gopkg.in/ini.v1 v1.55.0 // indirect
+	honnef.co/go/tools v0.0.1-2020.1.3 // indirect
 	k8s.io/api v0.0.0
 	k8s.io/apimachinery v0.0.0
 	k8s.io/client-go v0.0.0
