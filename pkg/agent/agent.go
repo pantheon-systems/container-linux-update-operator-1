@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -418,12 +419,17 @@ func (k *Klocksmith) getPodsForDeletion() ([]v1.Pod, error) {
 		return nil, fmt.Errorf("failed to get list of pods for deletion: %v", err)
 	}
 
+	// WIP: Seeing what's in labels to see if matching is preferable
+	for _, pod := range pods {
+		glog.Infof("DEBUG: pod %v", pod.Labels)
+	}
+
 	// XXX: ignoring kube-system is a simple way to avoid evicting
 	// critical components such as kube-scheduler and
 	// kube-controller-manager.
 
 	pods = k8sutil.FilterPods(pods, func(p *v1.Pod) bool {
-		return p.Namespace != "kube-system"
+		return p.Namespace != "kube-system" && !strings.Contains(p.Name, "update-agent")
 	})
 
 	return pods, nil
