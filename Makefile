@@ -13,7 +13,7 @@ GOFLAGS := -ldflags=-w
 GOFLAGS := $(GOFLAGS) -ldflags=-X=$(REPO)/pkg/version.Version=$(RELEASE_VERSION)
 GOFLAGS := "$(GOFLAGS) -ldflags=-X=$(REPO)/pkg/version.Commit=$(COMMIT)"
 
-OPERATOR_IMAGE_REPO ?= quay.io/getpantheon/cos-update-operator-operator
+OPERATOR_IMAGE_REPO ?= quay.io/getpantheon/cos-update-operator
 AGENT_IMAGE_REPO ?= quay.io/getpantheon/cos-update-operator-agent
 
 KUBE_NAMESPACE ?= $(shell kubectl config get-contexts \
