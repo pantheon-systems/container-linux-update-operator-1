@@ -29,15 +29,15 @@ all: bin/* test lint coverage
 
 # used for caching golangci-lint data in circleci
 master-sha:
-	@git fetch origin && git rev-parse origin/master > master_sha
+	git fetch origin && git rev-parse origin/master > master_sha
 
 test: deps
 bin/*: deps
 
 tools: export GO111MODULE=off
 tools:
-	go get -u "github.com/golangci/golangci-lint/cmd/golangci-lint" > /dev/null
-	go get -u "github.com/ory/go-acc" > /dev/null
+	go get -u "github.com/golangci/golangci-lint/cmd/golangci-lint"
+	go get -u "github.com/ory/go-acc"
 
 deps: tools
 	go get ./...
@@ -66,25 +66,25 @@ coverage:
 	go-acc ./...
 
 agent-image: bin/update-agent
-	@docker build -t $(AGENT_IMAGE_REPO):$(VERSION) --build-arg=cmd=update-agent .
+	docker build -t $(AGENT_IMAGE_REPO):$(VERSION) --build-arg=cmd=update-agent .
 
 operator-image: bin/update-operator
-	@docker build -t $(OPERATOR_IMAGE_REPO):$(VERSION) --build-arg=cmd=update-operator .
+	docker build -t $(OPERATOR_IMAGE_REPO):$(VERSION) --build-arg=cmd=update-operator .
 
 image: agent-image
 image: operator-image
 
 push-agent: agent-image
-	@docker push $(AGENT_IMAGE_REPO):$(VERSION)
+	docker push $(AGENT_IMAGE_REPO):$(VERSION)
 
 push-operator: operator-image
-	@docker push $(OPERATOR_IMAGE_REPO):$(VERSION)
+	docker push $(OPERATOR_IMAGE_REPO):$(VERSION)
 
 push: push-agent push-operator
 
 ko: export KO_DOCKER_REPO=us-central1-docker.pkg.dev/pantheon-sandbox/pantheon-sandbox-public
 ko:
-	@ko apply -f k8s/daemonset.yaml
+	ko apply -f k8s/daemonset.yaml
 
 clean:
 	rm -rf bin
