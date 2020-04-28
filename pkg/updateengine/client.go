@@ -34,6 +34,7 @@ const (
 	dbusPath      = "/org/chromium/UpdateEngine"
 	dbusInterface = "org.chromium.UpdateEngineInterface"
 	dbusMember    = "StatusUpdate"
+	dbusObject    = "org.chromium.UpdateEngine"
 	signalBuffer  = 32 // TODO(bp): What is a reasonable value here?
 )
 
@@ -65,7 +66,7 @@ func New() (*Client, error) {
 		return nil, err
 	}
 
-	c.object = c.conn.Object("com.coreos.update1", dbus.ObjectPath(dbusPath))
+	c.object = c.conn.Object(dbusObject, dbus.ObjectPath(dbusPath))
 
 	// Setup the filter for the StatusUpdate signals
 	match := fmt.Sprintf("type='signal',interface='%s',member='%s'", dbusInterface, dbusMember)
