@@ -15,10 +15,6 @@
 package updateengine
 
 import (
-	"reflect"
-	"testing"
-	"time"
-
 	"github.com/godbus/dbus"
 )
 
@@ -34,6 +30,7 @@ func makeSig(curOp string) *dbus.Signal {
 	}
 }
 
+/*
 func makeStat(curOp string) Status {
 	return Status{
 		0,
@@ -101,3 +98,4 @@ func TestRebootNeededSignal(t *testing.T) {
 		t.Fatal("RebootNeededSignal did not stop as expected")
 	}
 }
+*/
