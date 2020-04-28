@@ -17,19 +17,18 @@ require (
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/mock v1.3.1
 	github.com/golangci/gocyclo v0.0.0-20180528144436-0a533e8fa43d // indirect
-	github.com/golangci/golangci-lint v1.25.0 // indirect
+	github.com/golangci/golangci-lint v1.25.1 // indirect
 	github.com/golangci/revgrep v0.0.0-20180812185044-276a5c0a1039 // indirect
 	github.com/google/uuid v1.1.1 // indirect
 	github.com/gostaticanalysis/analysisutil v0.0.3 // indirect
 	github.com/jirfag/go-printf-func-name v0.0.0-20200119135958-7558a9eaa5af // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/mattn/go-colorable v0.1.6 // indirect
-	github.com/mitchellh/mapstructure v1.2.2 // indirect
+	github.com/mitchellh/mapstructure v1.2.3 // indirect
 	github.com/ory/go-acc v0.2.1 // indirect
-	github.com/ory/x v0.0.113 // indirect
+	github.com/ory/x v0.0.115 // indirect
 	github.com/pelletier/go-toml v1.7.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/ryancurrah/gomodguard v1.0.3 // indirect
 	github.com/securego/gosec v0.0.0-20200401082031-e946c8c39989 // indirect
 	github.com/sirupsen/logrus v1.5.0 // indirect
 	github.com/spf13/afero v1.2.2 // indirect
@@ -38,15 +37,17 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/viper v1.6.3 // indirect
 	github.com/stretchr/testify v1.5.1 // indirect
-	golang.org/x/sys v0.0.0-20200420163511-1957bb5e6d1f // indirect
-	golang.org/x/tools v0.0.0-20200422205258-72e4a01eba43 // indirect
+	github.com/tdakkota/asciicheck v0.0.0-20200416200610-e657995f937b // indirect
+	github.com/timakin/bodyclose v0.0.0-20200424151742-cb6215831a94 // indirect
+	golang.org/x/sys v0.0.0-20200427175716-29b57079015a // indirect
+	golang.org/x/tools v0.0.0-20200427214658-4697a2867c88 // indirect
 	gopkg.in/ini.v1 v1.55.0 // indirect
 	honnef.co/go/tools v0.0.1-2020.1.3 // indirect
 	k8s.io/api v0.0.0
 	k8s.io/apimachinery v0.0.0
 	k8s.io/client-go v0.0.0
 	k8s.io/kubernetes v1.15.0
-	mvdan.cc/unparam v0.0.0-20200314162735-0ac8026f7d06 // indirect
+	mvdan.cc/unparam v0.0.0-20200426200139-6e24660d5748 // indirect
 	sourcegraph.com/sqs/pbtypes v1.0.0 // indirect
 )
 

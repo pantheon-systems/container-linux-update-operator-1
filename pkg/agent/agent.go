@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"sync"
 	"time"
 
@@ -37,7 +36,11 @@ type Klocksmith struct {
 	reapTimeout time.Duration
 }
 
-const defaultPollInterval = 10 * time.Second
+const (
+	defaultPollInterval = 10 * time.Second
+	// When rebooting, some pods, for instance this one, should not be terminated prior to reboot
+	resistTermination = "resist-termination"
+)
 
 var (
 	shouldRebootSelector = fields.Set(map[string]string{
@@ -413,15 +416,22 @@ func (k *Klocksmith) waitForNotOkToReboot() error {
 	return nil
 }
 
+// Should this pod not be terminated when others are prior to reboot?
+// For instance, we don't want this agent to be terminated while it is responsible
+// for terminating others
+func resistsTermination(labels map[string]string) bool {
+	if value, exists := labels[resistTermination]; exists {
+		if value == "true" {
+			return true
+		}
+	}
+	return false
+}
+
 func (k *Klocksmith) getPodsForDeletion() ([]v1.Pod, error) {
 	pods, err := drain.GetPodsForDeletion(k.kc, k.node)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get list of pods for deletion: %v", err)
-	}
-
-	// WIP: Seeing what's in labels to see if matching is preferable
-	for _, pod := range pods {
-		glog.Infof("DEBUG: pod %v", pod.Labels)
 	}
 
 	// XXX: ignoring kube-system is a simple way to avoid evicting
@@ -429,7 +439,7 @@ func (k *Klocksmith) getPodsForDeletion() ([]v1.Pod, error) {
 	// kube-controller-manager.
 
 	pods = k8sutil.FilterPods(pods, func(p *v1.Pod) bool {
-		return p.Namespace != "kube-system" && !strings.Contains(p.Name, "update-agent")
+		return p.Namespace != "kube-system" && !resistsTermination(p.Labels)
 	})
 
 	return pods, nil
