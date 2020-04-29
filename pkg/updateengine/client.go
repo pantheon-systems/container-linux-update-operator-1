@@ -20,7 +20,6 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/godbus/dbus"
 )
 
@@ -104,8 +103,6 @@ func (c *Client) ReceiveStatuses(rcvr chan *StatusResult, stop <-chan struct{}) 
 	}
 
 	rcvr <- st
-	log.Println("ReceiveStatuses")
-	spew.Dump(st)
 
 	for {
 		select {
@@ -137,9 +134,6 @@ func (c *Client) GetStatus() (*StatusResult, error) {
 	if call.Err != nil {
 		return &StatusResult{}, call.Err
 	}
-
-	log.Println("GetStatus")
-	spew.Dump(call)
 
 	return NewStatus(call.Body), nil
 }
