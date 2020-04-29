@@ -45,10 +45,17 @@ commands:
       - attach_workspace:
           at: .
 
+  install-go-protoc:
+    steps:
+      - run: curl -L https://github.com/protocolbuffers/protobuf/releases/download/v3.11.4/protoc-3.11.4-linux-x86_64.zip -o ~/protoc.zip
+      - run: unzip ~/protoc.zip -d ~/
+      - run: go get google.golang.org/protobuf/cmd/protoc-gen-go
+
 jobs:
   test:
     executor: go-build
     steps:
+      - install-go-protoc
       - checkout
       - restore-go-mod-cache
       - run: make master-sha

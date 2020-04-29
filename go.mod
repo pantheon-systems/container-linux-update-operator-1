@@ -10,6 +10,8 @@ require (
 	github.com/godbus/dbus v4.0.0+incompatible
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/mock v1.2.0
+	github.com/golang/protobuf v1.4.0
+	google.golang.org/protobuf v1.21.0
 	k8s.io/api v0.0.0
 	k8s.io/apimachinery v0.0.0
 	k8s.io/client-go v0.0.0

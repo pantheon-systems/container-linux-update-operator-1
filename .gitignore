@@ -5,3 +5,5 @@ update-operator
 update-agent
 master_sha
 coverage.txt
+/pkg/updateengine/update_engine.pb.go
+/pkg/updateengine/update_engine.proto

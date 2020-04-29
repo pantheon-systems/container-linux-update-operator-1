@@ -16,6 +16,7 @@ package updateengine
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 
@@ -31,9 +32,10 @@ import (
 // method call time=1586301148.041487 sender=:1.2974643 -> destination=org.chromium.UpdateEngine serial=7 path=/org/chromium/UpdateEngine; interface=org.chromium.UpdateEngineInterface; member=GetStatusAdvanced
 
 const (
+	dbusObject    = "org.chromium.UpdateEngine"
 	dbusPath      = "/org/chromium/UpdateEngine"
 	dbusInterface = "org.chromium.UpdateEngineInterface"
-	dbusMember    = "StatusUpdate"
+	dbusMember    = "StatusUpdateAdvanced"
 	signalBuffer  = 32 // TODO(bp): What is a reasonable value here?
 )
 
@@ -65,7 +67,7 @@ func New() (*Client, error) {
 		return nil, err
 	}
 
-	c.object = c.conn.Object("com.coreos.update1", dbus.ObjectPath(dbusPath))
+	c.object = c.conn.Object(dbusObject, dbus.ObjectPath(dbusPath))
 
 	// Setup the filter for the StatusUpdate signals
 	match := fmt.Sprintf("type='signal',interface='%s',member='%s'", dbusInterface, dbusMember)
@@ -92,10 +94,14 @@ func (c *Client) Close() error {
 // on the rcvr channel, until the stop channel is closed. An attempt is made to
 // get the initial status and send it on the rcvr channel before receiving
 // starts.
-func (c *Client) ReceiveStatuses(rcvr chan Status, stop <-chan struct{}) {
+func (c *Client) ReceiveStatuses(rcvr chan *StatusResult, stop <-chan struct{}) {
 	// if there is an error getting the current status, ignore it and just
 	// move onto the main loop.
-	st, _ := c.GetStatus()
+	st, err := c.GetStatus()
+	if err != nil {
+		log.Println("Got error: ", err.Error())
+	}
+
 	rcvr <- st
 
 	for {
@@ -108,14 +114,14 @@ func (c *Client) ReceiveStatuses(rcvr chan Status, stop <-chan struct{}) {
 	}
 }
 
-func (c *Client) RebootNeededSignal(rcvr chan Status, stop <-chan struct{}) {
+func (c *Client) RebootNeededSignal(rcvr chan *StatusResult, stop <-chan struct{}) {
 	for {
 		select {
 		case <-stop:
 			return
 		case signal := <-c.ch:
 			s := NewStatus(signal.Body)
-			if s.CurrentOperation == UpdateStatusUpdatedNeedReboot {
+			if s.CurrentOperation == Operation_UPDATED_NEED_REBOOT {
 				rcvr <- s
 			}
 		}
@@ -123,11 +129,12 @@ func (c *Client) RebootNeededSignal(rcvr chan Status, stop <-chan struct{}) {
 }
 
 // GetStatus gets the current status from update_engine
-func (c *Client) GetStatus() (Status, error) {
+func (c *Client) GetStatus() (*StatusResult, error) {
 	call := c.object.Call(dbusInterface+".GetStatusAdvanced", 0)
 	if call.Err != nil {
-		return Status{}, call.Err
+		return &StatusResult{}, call.Err
 	}
+
 	return NewStatus(call.Body), nil
 }
 

@@ -15,32 +15,32 @@
 package updateengine
 
 import (
-	"reflect"
 	"testing"
 	"time"
 
 	"github.com/godbus/dbus"
+	"google.golang.org/protobuf/proto"
 )
 
-func makeSig(curOp string) *dbus.Signal {
+func makeSig(t *testing.T, curOp Operation) *dbus.Signal {
+	status := makeStat(curOp)
+	rawStatus, err := proto.Marshal(status)
+	if err != nil {
+		t.Fatal("Unable to marshal protobuf")
+	}
+
 	return &dbus.Signal{
-		Body: []interface{}{
-			int64(0),
-			0.0,
-			curOp,
-			"newVer",
-			int64(1024),
-		},
+		Body: []interface{}{rawStatus},
 	}
 }
 
-func makeStat(curOp string) Status {
-	return Status{
-		0,
-		0.0,
-		curOp,
-		"newVer",
-		1024,
+func makeStat(curOp Operation) *StatusResult {
+	return &StatusResult{
+		LastCheckedTime:  0,
+		Progress:         0.0,
+		CurrentOperation: curOp,
+		NewVersion:       "newVer",
+		NewSize:          1024,
 	}
 }
 
@@ -48,7 +48,7 @@ func TestRebootNeededSignal(t *testing.T) {
 	c := &Client{
 		ch: make(chan *dbus.Signal, signalBuffer),
 	}
-	r := make(chan Status)
+	r := make(chan *StatusResult)
 	s := make(chan struct{})
 	var done bool
 	go func() {
@@ -59,7 +59,7 @@ func TestRebootNeededSignal(t *testing.T) {
 	if done {
 		t.Fatal("RebootNeededSignal stopped prematurely")
 	}
-	c.ch <- makeSig(UpdateStatusUpdatedNeedReboot)
+	c.ch <- makeSig(t, Operation_UPDATED_NEED_REBOOT)
 	if done {
 		t.Fatal("RebootNeededSignal stopped prematurely")
 	}
@@ -68,7 +68,7 @@ func TestRebootNeededSignal(t *testing.T) {
 
 	select {
 	case stat := <-r:
-		if !reflect.DeepEqual(stat, makeStat(UpdateStatusUpdatedNeedReboot)) {
+		if !proto.Equal(stat, makeStat(Operation_UPDATED_NEED_REBOOT)) {
 			t.Fatalf("bad status received: %#v", stat)
 		}
 	default:
@@ -79,7 +79,7 @@ func TestRebootNeededSignal(t *testing.T) {
 		t.Fatal("RebootNeededSignal stopped prematurely")
 	}
 
-	c.ch <- makeSig("some other ignored signal")
+	c.ch <- makeSig(t, Operation_DOWNLOADING) // some other ignored signal
 
 	time.Sleep(10 * time.Millisecond)
 

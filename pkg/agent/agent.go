@@ -241,11 +241,11 @@ func (k *Klocksmith) process(stop <-chan struct{}) error {
 // updateStatusCallback receives Status messages from update engine. If the
 // status is UpdateStatusUpdatedNeedReboot, indicate that with a label on our
 // node.
-func (k *Klocksmith) updateStatusCallback(s updateengine.Status) {
+func (k *Klocksmith) updateStatusCallback(s *updateengine.StatusResult) {
 	glog.Info("Updating status")
 	// update our status
 	anno := map[string]string{
-		constants.AnnotationStatus:          s.CurrentOperation,
+		constants.AnnotationStatus:          fmt.Sprintf("UPDATE_STATUS_%s", updateengine.Operation_name[int32(s.CurrentOperation)]),
 		constants.AnnotationLastCheckedTime: fmt.Sprintf("%d", s.LastCheckedTime),
 		constants.AnnotationNewVersion:      s.NewVersion,
 	}
@@ -253,7 +253,7 @@ func (k *Klocksmith) updateStatusCallback(s updateengine.Status) {
 	labels := map[string]string{}
 
 	// indicate we need a reboot
-	if s.CurrentOperation == updateengine.UpdateStatusUpdatedNeedReboot {
+	if s.CurrentOperation == updateengine.Operation_UPDATED_NEED_REBOOT {
 		glog.Info("Indicating a reboot is needed")
 		anno[constants.AnnotationRebootNeeded] = constants.True
 		labels[constants.LabelRebootNeeded] = constants.True
@@ -294,11 +294,11 @@ func (k *Klocksmith) setInfoLabels() error {
 	return nil
 }
 
-func (k *Klocksmith) watchUpdateStatus(update func(s updateengine.Status), stop <-chan struct{}) {
+func (k *Klocksmith) watchUpdateStatus(update func(s *updateengine.StatusResult), stop <-chan struct{}) {
 	glog.Info("Beginning to watch update_engine status")
 
-	oldOperation := ""
-	ch := make(chan updateengine.Status, 1)
+	oldOperation := updateengine.Operation_IDLE
+	ch := make(chan *updateengine.StatusResult, 1)
 
 	go k.ue.ReceiveStatuses(ch, stop)
 
