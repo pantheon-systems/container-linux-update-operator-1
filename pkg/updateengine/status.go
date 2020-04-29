@@ -20,31 +20,6 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// The possible update statuses returned from the update engine
-//
-// These correspond to current operation values exposed over DBus and defined by `update_engine`:
-// https://github.com/coreos/update_engine/blob/v0.4.3/src/update_engine/update_attempter.h#L34-L43
-const (
-	UpdateStatusIdle                = "UPDATE_STATUS_IDLE"
-	UpdateStatusCheckingForUpdate   = "UPDATE_STATUS_CHECKING_FOR_UPDATE"
-	UpdateStatusUpdateAvailable     = "UPDATE_STATUS_UPDATE_AVAILABLE"
-	UpdateStatusDownloading         = "UPDATE_STATUS_DOWNLOADING"
-	UpdateStatusVerifying           = "UPDATE_STATUS_VERIFYING"
-	UpdateStatusFinalizing          = "UPDATE_STATUS_FINALIZING"
-	UpdateStatusUpdatedNeedReboot   = "UPDATE_STATUS_UPDATED_NEED_REBOOT"
-	UpdateStatusReportingErrorEvent = "UPDATE_STATUS_REPORTING_ERROR_EVENT"
-)
-
-/*
-type Status struct {
-	LastCheckedTime  int64
-	Progress         float64
-	CurrentOperation string
-	NewVersion       string
-	NewSize          int64
-}
-*/
-
 func NewStatus(body []interface{}) *StatusResult {
 	s := &StatusResult{}
 

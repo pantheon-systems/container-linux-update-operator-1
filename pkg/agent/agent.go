@@ -145,7 +145,6 @@ func (k *Klocksmith) process(stop <-chan struct{}) error {
 	}
 
 	// watch update engine for status updates
-
 	go k.watchUpdateStatus(k.updateStatusCallback, stop)
 
 	// block until constants.AnnotationOkToReboot is set
@@ -299,7 +298,6 @@ func (k *Klocksmith) watchUpdateStatus(update func(s *updateengine.StatusResult)
 	glog.Info("Beginning to watch update_engine status")
 
 	oldOperation := updateengine.Operation_IDLE
-
 	ch := make(chan *updateengine.StatusResult, 1)
 
 	go k.ue.ReceiveStatuses(ch, stop)
