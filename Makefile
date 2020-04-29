@@ -1,4 +1,4 @@
-.PHONY:	all image clean test coverage lint image operator-image agent-image push
+.PHONY:	all image clean test coverage lint image operator-image agent-image push proto
 VERSION := $(shell ./build/git-version.sh)
 RELEASE_VERSION := $(shell cat VERSION)
 COMMIT := $(shell git rev-parse HEAD)
@@ -39,7 +39,7 @@ tools:
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH)/bin v1.25.0
 	go get -u "github.com/ory/go-acc"
 
-deps: tools
+deps: tools proto
 	go get ./...
 
 export CGO_ENABLED := 0
@@ -89,7 +89,13 @@ ko:
 # requires protoc with go support
 # for macOS install with: brew install protoc-gen-go
 proto:
+	curl --silent https://chromium.googlesource.com/chromiumos/platform2/+/master/system_api/dbus/update_engine/update_engine.proto?format=TEXT \
+		| base64 --decode \
+		| awk '1;/syntax/{ print "option go_package = \"pkg/updateengine\";"; }' \
+		> pkg/updateengine/update_engine.proto
 	protoc --go_out=. --go_opt=paths=source_relative pkg/updateengine/update_engine.proto
 
 clean:
 	rm -rf bin
+	rm pkg/updateengine/update_engine.pb.go
+	rm pkg/updateengine/update_engine.proto
