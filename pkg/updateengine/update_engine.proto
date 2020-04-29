@@ -1,9 +1,12 @@
 // Copyright 2019 The Chromium OS Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+
+// proto file from: https://chromium.googlesource.com/chromiumos/platform2/+/master/system_api/dbus/update_engine/update_engine.proto
+
 syntax = "proto3";
 option optimize_for = LITE_RUNTIME;
-option go_package = ".;agent";
+option go_package = "pkg/updateengine";
 
 package update_engine;
 // Keep in sync with:

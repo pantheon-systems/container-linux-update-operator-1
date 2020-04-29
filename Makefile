@@ -86,5 +86,10 @@ ko: export KO_DOCKER_REPO=us-central1-docker.pkg.dev/pantheon-sandbox/pantheon-s
 ko:
 	ko apply -f k8s/daemonset.yaml
 
+# requires protoc with go support
+# for macOS install with: brew install protoc-gen-go
+proto:
+	protoc --go_out=. --go_opt=paths=source_relative pkg/updateengine/update_engine.proto
+
 clean:
 	rm -rf bin
