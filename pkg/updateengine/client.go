@@ -109,6 +109,9 @@ func (c *Client) ReceiveStatuses(rcvr chan *StatusResult, stop <-chan struct{}) 
 		case <-stop:
 			return
 		case signal := <-c.ch:
+			if signal == nil {
+				return
+			}
 			rcvr <- NewStatus(signal.Body)
 		}
 	}
