@@ -73,6 +73,7 @@ jobs:
     executor: go-build
     steps:
       - setup_remote_docker
+      - install-go-protoc
       - restore-workspace
       - restore-go-mod-cache
       - restore-golangci-lint-cache
