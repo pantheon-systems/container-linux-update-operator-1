@@ -34,6 +34,7 @@ type Klocksmith struct {
 	ue          *updateengine.Client
 	lc          *login1.Conn
 	reapTimeout time.Duration
+	drainPods   bool
 }
 
 const defaultPollInterval = 10 * time.Second
@@ -45,7 +46,7 @@ var (
 	}).AsSelector()
 )
 
-func New(node string, reapTimeout time.Duration) (*Klocksmith, error) {
+func New(node string, reapTimeout time.Duration, drainPods bool) (*Klocksmith, error) {
 	// set up kubernetes in-cluster client
 	kc, err := k8sutil.GetClient()
 	if err != nil {
@@ -67,7 +68,7 @@ func New(node string, reapTimeout time.Duration) (*Klocksmith, error) {
 		return nil, fmt.Errorf("error establishing connection to logind dbus: %v", err)
 	}
 
-	return &Klocksmith{node, kc, nc, ue, lc, reapTimeout}, nil
+	return &Klocksmith{node, kc, nc, ue, lc, reapTimeout, drainPods}, nil
 }
 
 // Run starts the agent to listen for an update_engine reboot signal and react
@@ -423,7 +424,7 @@ func (k *Klocksmith) getPodsForDeletion() ([]v1.Pod, error) {
 	// kube-controller-manager.
 
 	pods = k8sutil.FilterPods(pods, func(p *v1.Pod) bool {
-		return p.Namespace != "kube-system"
+		return k.drainPods && p.Namespace != "kube-system"
 	})
 
 	return pods, nil

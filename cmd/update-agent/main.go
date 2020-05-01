@@ -17,6 +17,7 @@ var (
 	node         = flag.String("node", "", "Kubernetes node name")
 	printVersion = flag.Bool("version", false, "Print version and exit")
 	reapTimeout  = flag.Int("grace-period", 600, "Period of time in seconds given to a pod to terminate when rebooting for an update")
+	drainPods    = flag.Bool("drain-pods", false, "If true, drain the pods from the node before rebooting")
 )
 
 func main() {
@@ -39,7 +40,7 @@ func main() {
 	}
 
 	rt := time.Duration(*reapTimeout) * time.Second
-	a, err := agent.New(*node, rt)
+	a, err := agent.New(*node, rt, *drainPods)
 	if err != nil {
 		glog.Fatalf("Failed to initialize %s: %v", os.Args[0], err)
 	}
