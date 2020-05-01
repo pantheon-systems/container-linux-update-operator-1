@@ -14,10 +14,11 @@ import (
 )
 
 var (
-	node         = flag.String("node", "", "Kubernetes node name")
-	printVersion = flag.Bool("version", false, "Print version and exit")
-	reapTimeout  = flag.Int("grace-period", 600, "Period of time in seconds given to a pod to terminate when rebooting for an update")
-	drainPods    = flag.Bool("drain-pods", false, "If true, drain the pods from the node before rebooting")
+	node            = flag.String("node", "", "Kubernetes node name")
+	printVersion    = flag.Bool("version", false, "Print version and exit")
+	reapTimeout     = flag.Int("grace-period", 600, "Period of time in seconds given to a pod to terminate when rebooting for an update")
+	drainPods       = flag.Bool("drain-pods", false, "If true, drain the pods from the node before rebooting")
+	waitForPodLabel = flag.String("wait-for-pod-label", "", "If set, wait for a pod running on this node matching the provided label")
 )
 
 func main() {
@@ -40,7 +41,7 @@ func main() {
 	}
 
 	rt := time.Duration(*reapTimeout) * time.Second
-	a, err := agent.New(*node, rt, *drainPods)
+	a, err := agent.New(*node, rt, *drainPods, *waitForPodLabel)
 	if err != nil {
 		glog.Fatalf("Failed to initialize %s: %v", os.Args[0], err)
 	}

@@ -28,13 +28,14 @@ import (
 )
 
 type Klocksmith struct {
-	node        string
-	kc          kubernetes.Interface
-	nc          v1core.NodeInterface
-	ue          *updateengine.Client
-	lc          *login1.Conn
-	reapTimeout time.Duration
-	drainPods   bool
+	node            string
+	kc              kubernetes.Interface
+	nc              v1core.NodeInterface
+	ue              *updateengine.Client
+	lc              *login1.Conn
+	reapTimeout     time.Duration
+	drainPods       bool
+	waitForPodLabel string
 }
 
 const defaultPollInterval = 10 * time.Second
@@ -46,7 +47,7 @@ var (
 	}).AsSelector()
 )
 
-func New(node string, reapTimeout time.Duration, drainPods bool) (*Klocksmith, error) {
+func New(node string, reapTimeout time.Duration, drainPods bool, waitForPodLabel string) (*Klocksmith, error) {
 	// set up kubernetes in-cluster client
 	kc, err := k8sutil.GetClient()
 	if err != nil {
@@ -68,7 +69,7 @@ func New(node string, reapTimeout time.Duration, drainPods bool) (*Klocksmith, e
 		return nil, fmt.Errorf("error establishing connection to logind dbus: %v", err)
 	}
 
-	return &Klocksmith{node, kc, nc, ue, lc, reapTimeout, drainPods}, nil
+	return &Klocksmith{node, kc, nc, ue, lc, reapTimeout, drainPods, waitForPodLabel}, nil
 }
 
 // Run starts the agent to listen for an update_engine reboot signal and react
@@ -87,6 +88,10 @@ func (k *Klocksmith) Run(stop <-chan struct{}) {
 // process performs the agent reconciliation to reboot the node or stops when
 // the stop channel is closed.
 func (k *Klocksmith) process(stop <-chan struct{}) error {
+	if err := k.waitForPodWithLabel(); err != nil {
+		return fmt.Errorf("failed to wait for pod with label: %v", err)
+	}
+
 	glog.Info("Setting info labels")
 	if err := k.setInfoLabels(); err != nil {
 		return fmt.Errorf("failed to set node info: %v", err)
@@ -447,6 +452,34 @@ func (k *Klocksmith) waitForPodDeletion(pod v1.Pod) error {
 
 		return false, nil
 	})
+}
+
+// wait until a pod matching the provided label is running on this node
+func (k *Klocksmith) waitForPodWithLabel() error {
+	if k.waitForPodLabel == "" {
+		// No label specified, nothing to do
+		return nil
+	}
+
+	for {
+		glog.Infof("Waiting for pod running on this node matching label: %s", k.waitForPodLabel)
+		time.Sleep(30 * time.Second)
+
+		podList, err := k.kc.CoreV1().Pods(v1.NamespaceAll).List(v1meta.ListOptions{
+			FieldSelector: fields.SelectorFromSet(fields.Set{"spec.nodeName": k.node}).String(),
+			LabelSelector: k.waitForPodLabel,
+		})
+		if err != nil {
+			return fmt.Errorf("Failed to get pods matching label '%s': %v", k.waitForPodLabel, err)
+		}
+
+		for _, pod := range podList.Items {
+			if pod.Status.Phase == v1.PodRunning {
+				glog.Infof("Done waiting, found pod in running state: %s", pod.Name)
+				return nil
+			}
+		}
+	}
 }
 
 // sleepOrDone pauses the current goroutine until the done channel receives
