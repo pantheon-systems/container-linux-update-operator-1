@@ -2,13 +2,14 @@ package agent
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sync"
 	"time"
 
 	"github.com/coreos/go-systemd/login1"
 	"github.com/golang/glog"
+	"github.com/pkg/errors"
+
 	v1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	v1meta "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -89,7 +90,7 @@ func (k *Klocksmith) Run(stop <-chan struct{}) {
 // the stop channel is closed.
 func (k *Klocksmith) process(stop <-chan struct{}) error {
 	if err := k.waitForPodWithLabel(); err != nil {
-		return fmt.Errorf("failed to wait for pod with label: %v", err)
+		return errors.Wrap(err, "failed to wait for pod with label")
 	}
 
 	glog.Info("Setting info labels")
@@ -470,7 +471,7 @@ func (k *Klocksmith) waitForPodWithLabel() error {
 			LabelSelector: k.waitForPodLabel,
 		})
 		if err != nil {
-			return fmt.Errorf("Failed to get pods matching label '%s': %v", k.waitForPodLabel, err)
+			return errors.Wrapf(err, "failed to get pods matching label: %s", k.waitForPodLabel)
 		}
 
 		for _, pod := range podList.Items {
