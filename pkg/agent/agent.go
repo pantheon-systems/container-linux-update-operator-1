@@ -463,7 +463,7 @@ func (k *Klocksmith) waitForPodWithLabel() error {
 
 	for {
 		glog.Infof("Waiting for pod running on this node matching label: %s", k.waitForPodLabel)
-		time.Sleep(30 * time.Second)
+		time.Sleep(defaultPollInterval)
 
 		podList, err := k.kc.CoreV1().Pods(v1.NamespaceAll).List(v1meta.ListOptions{
 			FieldSelector: fields.SelectorFromSet(fields.Set{"spec.nodeName": k.node}).String(),
