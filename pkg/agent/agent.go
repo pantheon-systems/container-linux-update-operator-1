@@ -89,6 +89,10 @@ func (k *Klocksmith) Run(stop <-chan struct{}) {
 // process performs the agent reconciliation to reboot the node or stops when
 // the stop channel is closed.
 func (k *Klocksmith) process(stop <-chan struct{}) error {
+	if err := k.waitForNodeReady(); err != nil {
+		return errors.Wrap(err, "failed to wait for node ready")
+	}
+
 	if err := k.waitForPodWithLabel(); err != nil {
 		return errors.Wrap(err, "failed to wait for pod with label")
 	}
@@ -477,6 +481,25 @@ func (k *Klocksmith) waitForPodWithLabel() error {
 		for _, pod := range podList.Items {
 			if pod.Status.Phase == v1.PodRunning {
 				glog.Infof("Done waiting, found pod in running state: %s", pod.Name)
+				return nil
+			}
+		}
+	}
+}
+
+func (k *Klocksmith) waitForNodeReady() error {
+	for {
+		glog.Info("Waiting for node to be ready")
+		time.Sleep(defaultPollInterval)
+
+		node, err := k.kc.CoreV1().Nodes().Get(k.node, v1meta.GetOptions{})
+		if err != nil {
+			return errors.Wrapf(err, "failed to get node: %s", k.node)
+		}
+
+		for _, cond := range node.Status.Conditions {
+			if cond.Type == v1.NodeReady && cond.Status == v1.ConditionTrue {
+				glog.Info("Done waiting, condition NodeReady is true")
 				return nil
 			}
 		}
