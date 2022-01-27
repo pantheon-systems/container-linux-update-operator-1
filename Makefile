@@ -7,6 +7,10 @@ ifneq ($(VERSION), $(RELEASE_VERSION))
     VERSION := $(RELEASE_VERSION)-$(VERSION)
 endif
 
+ifneq ($(CIRCLE_BRANCH),)
+    VERSION := $(CIRCLE_BUILD_NUM)-$(CIRCLE_BRANCH)
+endif
+
 REPO=github.com/pantheon-systems/cos-update-operator
 # ko can't pass -ldflags any other way
 GOFLAGS := -ldflags=-w

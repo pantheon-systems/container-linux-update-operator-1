@@ -55,11 +55,11 @@ jobs:
   test:
     executor: go-build
     steps:
-      - install-go-protoc
       - checkout
       - restore-go-mod-cache
       - run: make master-sha
       - restore-golangci-lint-cache
+      - install-go-protoc
       # commands
       - run: |
           git config --global user.email circleci
@@ -73,10 +73,10 @@ jobs:
     executor: go-build
     steps:
       - setup_remote_docker
-      - install-go-protoc
       - restore-workspace
       - restore-go-mod-cache
       - restore-golangci-lint-cache
+      - install-go-protoc
       # commands
       - run: docker login -u "$QUAY_USER" -p "$QUAY_PASSWD" quay.io
       - run: make push
@@ -90,7 +90,3 @@ workflows:
       - release:
           requires:
             - test
-          filters:
-            branches:
-              only:
-                - master
