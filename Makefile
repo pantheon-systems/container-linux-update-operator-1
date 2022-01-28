@@ -8,7 +8,8 @@ ifneq ($(VERSION), $(RELEASE_VERSION))
 endif
 
 ifneq ($(CIRCLE_BRANCH),)
-    VERSION := $(CIRCLE_BUILD_NUM)-$(CIRCLE_BRANCH)
+    BRANCH_LAST_PART := $(lastword $(subst /, ,$(CIRCLE_BRANCH)))
+    VERSION := $(CIRCLE_BUILD_NUM)-$(BRANCH_LAST_PART)
 endif
 
 REPO=github.com/pantheon-systems/cos-update-operator
@@ -79,9 +80,17 @@ image: operator-image
 
 push-agent: agent-image
 	docker push $(AGENT_IMAGE_REPO):$(VERSION)
+ifeq ($(CIRCLE_BRANCH),master)
+	docker tag $(AGENT_IMAGE_REPO):$(VERSION) $(AGENT_IMAGE_REPO):master
+	docker push $(AGENT_IMAGE_REPO):master
+endif
 
 push-operator: operator-image
 	docker push $(OPERATOR_IMAGE_REPO):$(VERSION)
+ifeq ($(CIRCLE_BRANCH),master)
+	docker tag $(OPERATOR_IMAGE_REPO):$(VERSION) $(OPERATOR_IMAGE_REPO):master
+	docker push $(OPERATOR_IMAGE_REPO):master
+endif
 
 push: push-agent push-operator
 
