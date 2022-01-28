@@ -7,7 +7,7 @@ require (
 	github.com/coreos/go-systemd v0.0.0-20190321100706-95778dfbb74e
 	github.com/coreos/locksmith v0.6.2-0.20171013225126-ef4279232ecd
 	github.com/coreos/pkg v0.0.0-20180108230652-97fdf19511ea
-	github.com/godbus/dbus v4.0.0+incompatible
+	github.com/godbus/dbus v4.1.0+incompatible
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/mock v1.6.0
 	github.com/pkg/errors v0.9.1
