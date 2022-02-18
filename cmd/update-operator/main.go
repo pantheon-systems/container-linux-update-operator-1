@@ -22,6 +22,7 @@ var (
 	rebootWindowStart       = flag.String("reboot-window-start", "", "Day of week ('Sun', 'Mon', ...; optional) and time of day at which the reboot window starts. E.g. 'Mon 14:00', '11:00'")
 	rebootWindowLength      = flag.String("reboot-window-length", "", "Length of the reboot window. E.g. '1h30m'")
 	printVersion            = flag.Bool("version", false, "Print version and exit")
+	slackWebhookURL         = flag.String("slack-webhook-url", "", "Slack webhook URL to use for sending messages")
 	// deprecated
 	analyticsEnabled optValue
 	manageAgent      = flag.Bool("manage-agent", false, "Manage the associated update-agent")
@@ -76,6 +77,7 @@ func main() {
 		AfterRebootAnnotations:  afterRebootAnnotations,
 		RebootWindowStart:       *rebootWindowStart,
 		RebootWindowLength:      *rebootWindowLength,
+		SlackWebhookURL:         *slackWebhookURL,
 	})
 	if err != nil {
 		glog.Fatalf("Failed to initialize %s: %v", os.Args[0], err)

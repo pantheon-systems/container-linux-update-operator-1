@@ -23,6 +23,8 @@ import (
 	"github.com/pantheon-systems/cos-update-operator/pkg/k8sutil"
 
 	"github.com/coreos/locksmith/pkg/timeutil"
+
+	"github.com/lytics/slackhook"
 )
 
 const (
@@ -125,6 +127,9 @@ type Kontroller struct {
 	// reboot window
 	rebootWindow *timeutil.Periodic
 
+	// client for sending messages to Slack
+	slackClient *slackhook.Client
+
 	// Deprecated
 	manageAgent    bool
 	agentImageRepo string
@@ -142,6 +147,8 @@ type Config struct {
 	// reboot window
 	RebootWindowStart  string
 	RebootWindowLength string
+	// webhook URL for sending Slack messages
+	SlackWebhookURL string
 	// Deprecated
 	ManageAgent    bool
 	AgentImageRepo string
@@ -201,6 +208,11 @@ func New(config Config) (*Kontroller, error) {
 		rebootWindow = rw
 	}
 
+	var slackClient *slackhook.Client
+	if config.SlackWebhookURL != "" {
+		slackClient = slackhook.New(config.SlackWebhookURL)
+	}
+
 	return &Kontroller{
 		kc:                          kc,
 		nc:                          nc,
@@ -214,6 +226,7 @@ func New(config Config) (*Kontroller, error) {
 		manageAgent:                 config.ManageAgent,
 		agentImageRepo:              config.AgentImageRepo,
 		rebootWindow:                rebootWindow,
+		slackClient:                 slackClient,
 	}, nil
 }
 
@@ -423,6 +436,10 @@ func (k *Kontroller) checkBeforeReboot() error {
 			constants.AnnotationOkToReboot,
 			n.Name,
 		)
+		err = k.sendSlackRebootMsg(&n)
+		if err != nil {
+			glog.Warningf("Unable to send Slack message: %v", err)
+		}
 		err = k8sutil.UpdateNodeRetry(k.nc, n.Name, func(node *v1api.Node) {
 			delete(node.Labels, constants.LabelBeforeReboot)
 			// cleanup the before-reboot annotations
@@ -623,6 +640,28 @@ func (k *Kontroller) mark(nodeName string, label string, annotations []string) e
 	}
 
 	return nil
+}
+
+func (k *Kontroller) sendSlackRebootMsg(node *v1api.Node) error {
+	if k.slackClient == nil {
+		return nil
+	}
+
+	return k.slackClient.Send(&slackhook.Message{
+		UserName: "cos-update-operator",
+		Attachments: []*slackhook.Attachment{
+			{
+				Color: "#0000FF",
+				Title: "COS Update Operator",
+				Text:  "Setting \"reboot-ok\" on node",
+				Fields: []slackhook.Field{
+					{Title: "Hostname", Value: node.Name, Short: true},
+					{Title: "Zone", Value: node.Labels["topology.kubernetes.io/zone"], Short: true},
+					{Title: "New COS Version", Value: node.Annotations[constants.AnnotationNewVersion], Short: true},
+				},
+			},
+		},
+	})
 }
 
 func hasAllAnnotations(node v1api.Node, annotations []string) bool {
