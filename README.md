@@ -1,5 +1,7 @@
 # Container Linux Update Operator
 
+[![Unsupported](https://img.shields.io/badge/Pantheon-Unsupported-yellow?logo=pantheon&color=FFDC28)](https://pantheon.io/docs/oss-support-levels#unsupported)
+
 Container Linux Update Operator is a node reboot controller for Kubernetes running
 Container Linux images. When a reboot is needed after updating the system via
 [update_engine](https://github.com/coreos/update_engine), the operator will
