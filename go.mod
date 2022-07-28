@@ -12,7 +12,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/lytics/slackhook v0.0.0-20160630154540-a52fd449b27d
 	github.com/pkg/errors v0.9.1
-	google.golang.org/protobuf v1.28.0
+	google.golang.org/protobuf v1.28.1
 	k8s.io/api v0.0.0
 	k8s.io/apimachinery v0.0.0
 	k8s.io/client-go v0.0.0
