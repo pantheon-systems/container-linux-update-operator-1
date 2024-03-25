@@ -86,7 +86,9 @@ workflows:
   version: 2
   primary:
     jobs:
-      - test
+      - test:
+          context:
+            - sig-go-release
       - release:
           context:
             - docker-executor-auth
